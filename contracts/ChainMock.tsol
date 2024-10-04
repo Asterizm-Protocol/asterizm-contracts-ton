@@ -1,0 +1,41 @@
+pragma ton-solidity >= 0.70.0;
+pragma AbiHeader expire;
+
+import "./libs/AsterizmHashLib.tsol";
+
+contract ChainMock {
+
+    using AsterizmHashLib for TvmCell;
+    uint8 public version = 1;
+    uint256 public h = 0x0;
+    TvmCell public payload;
+
+    /// Build transfer hash
+    /// @param _srcChainId uint64  Chain ID
+    /// @param _srcAddress uint  Address
+    /// @param _dstChainId uint64  Chain ID
+    /// @param _dstAddress uint  Address
+    /// @param _txId uint  Transaction ID
+    /// @param _payload TvmCell  Payload
+    /// @return bytes32
+    function buildTransferHash(uint64 _srcChainId, uint _srcAddress, uint64 _dstChainId, uint _dstAddress, uint _txId, TvmCell _payload) external returns(uint) {
+        //tvm.accept();
+        TvmCell fullPayload = abi.encode(_srcChainId, _srcAddress, _dstChainId, _dstAddress, _txId, bytes(_payload.toSlice()));
+        //return _getChainType(_srcChainId) == _getChainType(_dstChainId) ? fullPayload.buildSimpleHash() : fullPayload.buildCrosschainHashWithVersion(hashVersion_);
+        h = fullPayload.buildCrosschainHashWithVersion(1);
+        //return fullPayload.buildCrosschainHashWithVersion(version);
+        return h;
+    }
+
+    function buildPayload(uint256 dstAddress, uint256 value) external {
+        uint256 mock = 0;
+        h = 9;
+        payload = abi.encode(dstAddress, value, mock);
+    }
+
+    /// Set version
+    /// @param _version uint8  Version
+    function setVersion(uint8 _version) external {
+        version = _version;
+    }
+}

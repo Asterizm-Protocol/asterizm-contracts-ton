@@ -1,0 +1,81 @@
+{
+	"ABI version": 2,
+	"version": "2.3",
+	"header": ["time", "expire"],
+	"functions": [
+		{
+			"name": "buildTransferHash",
+			"inputs": [
+				{"name":"_srcChainId","type":"uint64"},
+				{"name":"_srcAddress","type":"uint256"},
+				{"name":"_dstChainId","type":"uint64"},
+				{"name":"_dstAddress","type":"uint256"},
+				{"name":"_txId","type":"uint256"},
+				{"name":"_payload","type":"cell"}
+			],
+			"outputs": [
+				{"name":"value0","type":"uint256"}
+			]
+		},
+		{
+			"name": "buildPayload",
+			"inputs": [
+				{"name":"dstAddress","type":"uint256"},
+				{"name":"value","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setVersion",
+			"inputs": [
+				{"name":"_version","type":"uint8"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "constructor",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "version",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"version","type":"uint8"}
+			]
+		},
+		{
+			"name": "h",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"h","type":"uint256"}
+			]
+		},
+		{
+			"name": "payload",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"payload","type":"cell"}
+			]
+		}
+	],
+	"data": [
+	],
+	"events": [
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"version","type":"uint8"},
+		{"name":"h","type":"uint256"},
+		{"name":"payload","type":"cell"}
+	]
+}

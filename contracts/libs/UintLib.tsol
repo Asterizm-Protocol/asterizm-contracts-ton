@@ -1,0 +1,11 @@
+pragma ton-solidity >= 0.70.0;
+
+library UintLib {
+
+    /// Convert uint (uint256) to address format
+    /// @param _val uint
+    /// @return uint
+    function toAddress(uint _val) internal returns(address) {
+        return address(_val);
+    }
+}

@@ -1,0 +1,33 @@
+pragma ton-solidity >= 0.70.0;
+
+import "./IAsterizmStructs.tsol";
+
+/// Initializer sender interface
+interface IInitializerSender is IAsterizmStructs {
+
+    /// Initiate asterizm transfer
+    /// @param _dto IzIninTransferRequestDto  Method DTO
+    function initTransfer(IzIninTransferRequestDto _dto) external;
+
+    /// Return local chain id
+    /// @return uint64
+    function getLocalChainId() external internalMsg view responsible returns(uint64);
+
+    /// Return initializer transfer code
+    /// @return TvmCell
+    function getInitializerTransferCode() external internalMsg view responsible returns(TvmCell);
+
+    /// Return client transfer code
+    /// @return TvmCell
+    function getClientTransferCode() external internalMsg view responsible returns(TvmCell);
+
+    /// Return chains list
+    /// @return mapping(uint64 => AsterizmChain)
+    function getChainsList() external internalMsg view responsible returns(mapping(uint64 => AsterizmChain));
+
+    /// Resend failed by fee amount transfer
+    /// @param _transferHash uint  Transfer hash
+    /// @param _feeAmount uint128  Transfer fee amount
+    /// @param _relay address  Relay address
+    function resendTransfer(uint _transferHash, uint128 _feeAmount, address _relay) external;
+}

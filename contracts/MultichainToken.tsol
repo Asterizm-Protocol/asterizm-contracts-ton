@@ -1,0 +1,94 @@
+pragma ton-solidity >= 0.70.0;
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+import "./base/AsterizmClient.tsol";
+
+contract MultichainToken is AsterizmClient {
+    
+    uint256 public tokenBalance;
+    address public jettonWallet;
+
+
+    uint16 constant ZERO_AMOUNT_ERROR = 120; 
+    uint16 constant NOT_ENOUGH_TOKENS_ERROR = 121;
+    uint128 constant MULTICHAINTOKEN_MIN_CONTRACT_BALANCE = 500000000;
+    /// Constructor    
+    constructor() AsterizmClient() {}
+
+    /// Cross-chain transfer
+    /// @param _dstChainId uint64  Destination chain ID
+    /// @param _from address  From address
+    /// @param _to address  To address
+    function crossChainTransfer(uint64 _dstChainId, address _from, uint256 _to, uint amount) internal {
+        _from;
+        require(amount > 0, ZERO_AMOUNT_ERROR);
+        tokenBalance += amount;
+        _initAsterizmTransferEvent(_dstChainId, abi.encode(_to, amount, _getTxId()));
+    }
+
+    /// Receive non-encoded payload
+    /// @param _dto ClAsterizmReceiveRequestDto  Method DTO
+    function _asterizmReceive(ClAsterizmReceiveRequestDto _dto) internal override returns(uint16) {
+        (uint dst, uint amount, ) = abi.decode(_dto.payload, (uint, uint, uint));
+        sendJettons(address(dst), amount);
+        return 0;
+    }
+
+    function setJettonWallet(address _jettonWallet) public onlyOwner {
+        tvm.rawReserve(MULTICHAINTOKEN_MIN_CONTRACT_BALANCE, 0);
+        jettonWallet = _jettonWallet;
+    }
+
+    function buildJettonsTransferBody(address to, uint256 amount) internal pure returns(TvmCell) {
+        uint128 fwdAmmount = 0;
+        TvmBuilder body;
+        body.storeUint(0xf8a7ea5, 32); // op::transfer()
+        body.storeUint(0, 64); // query id
+        // store coins
+        body.storeUint(15, 4); // amount byte length
+        body.storeUint(amount, 120); // amount
+        body.store(to); // to address
+        // response address
+        // store address None https://github.com/ton-blockchain/token-contract/blob/21e7844fa6dbed34e0f4c70eb5f0824409640a30/ft/jetton-wallet.fc#L149
+        body.storeZeroes(2); // response address None
+        body.storeZeroes(1); // null custom_payload
+        // frward ammount
+        body.storeUint(1, 4);
+        body.storeUint(fwdAmmount, 8);
+        body.storeZeroes(1);// false Either for empty payload
+
+       return body.toCell();
+    }
+
+    function sendJettons(address to, uint256 amount) internal  {
+        require(tokenBalance >= amount, NOT_ENOUGH_TOKENS_ERROR);
+        tokenBalance -= amount;
+        TvmCell body = buildJettonsTransferBody(to, amount);
+        jettonWallet.transfer({value: 41500000, body: body});
+    }
+
+    fallback() external {
+        TvmSlice body = msg.data;
+        uint32 functionId = uint32(body.loadUint(32));
+        if (msg.sender == jettonWallet && functionId == 0x7362d09c) { // transfer_notification
+            uint64 queryId = uint64(body.loadUint(64));
+            // load coins
+            //byte len
+            uint8 len = uint8(body.loadUint(4)) * 8;
+            uint128 value = uint128(body.loadUint(len));
+            // load sender address
+            address sender = body.load(address);
+            // load payload from ref
+            if (body.refs() == 1) {
+                TvmSlice ref = body.loadRef().toSlice();
+                // chainId
+                uint64 chainId = uint64(ref.loadUint(64));
+                // load target address
+                uint256 target = ref.load(uint256);
+                // call logic
+                crossChainTransfer(chainId, sender, target, value);
+            }
+        }
+    }
+}

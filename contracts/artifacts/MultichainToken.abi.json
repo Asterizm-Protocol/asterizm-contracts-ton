@@ -1,0 +1,440 @@
+{
+	"ABI version": 2,
+	"version": "2.3",
+	"header": ["pubkey", "time", "expire"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setJettonWallet",
+			"inputs": [
+				{"name":"_jettonWallet","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setExternalRelay",
+			"inputs": [
+				{"name":"_externalRelay","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getExternalRelay",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"value0","type":"address"}
+			]
+		},
+		{
+			"name": "addSender",
+			"inputs": [
+				{"name":"_sender","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "removeSender",
+			"inputs": [
+				{"name":"_sender","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "addTrustedAddress",
+			"inputs": [
+				{"name":"_chainIds","type":"uint64"},
+				{"name":"_trustedAddresses","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "addTrustedAddresses",
+			"inputs": [
+				{"name":"_chainIds","type":"uint64[]"},
+				{"name":"_trustedAddresses","type":"uint256[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "removeTrustedSourceAddress",
+			"inputs": [
+				{"name":"_chainId","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "updateChainsList",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onUpdateChainsListCallback",
+			"inputs": [
+				{"components":[{"name":"exists","type":"bool"},{"name":"chainType","type":"uint8"}],"name":"_chains","type":"map(uint64,tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getInitializerAddress",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"value0","type":"address"}
+			]
+		},
+		{
+			"name": "getTrustedAddresses",
+			"inputs": [
+				{"name":"_chainId","type":"uint64"}
+			],
+			"outputs": [
+				{"name":"value0","type":"uint256"}
+			]
+		},
+		{
+			"name": "getDisableHashValidation",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"value0","type":"bool"}
+			]
+		},
+		{
+			"name": "getNotifyTransferSendingResult",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"value0","type":"bool"}
+			]
+		},
+		{
+			"name": "initAsterizmTransfer",
+			"inputs": [
+				{"name":"_dstChainId","type":"uint64"},
+				{"name":"_txId","type":"uint256"},
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_transferFeeValue","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onInitAsterizmTransferCallback",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_flag","type":"bool"},
+				{"name":"_method","type":"uint8"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "resendAsterizmTransfer",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_feeAmount","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "transferSendingResultNotification",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_statusCode","type":"uint8"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "asterizmIzReceive",
+			"inputs": [
+				{"components":[{"name":"srcChainId","type":"uint64"},{"name":"srcAddress","type":"uint256"},{"name":"dstChainId","type":"uint64"},{"name":"dstAddress","type":"uint256"},{"name":"txId","type":"uint256"},{"name":"transferHash","type":"uint256"}],"name":"_dto","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "asterizmClReceive",
+			"inputs": [
+				{"name":"_srcChainId","type":"uint64"},
+				{"name":"_srcAddress","type":"uint256"},
+				{"name":"_txId","type":"uint256"},
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_payload","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onAsterizmReceiveCallback",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_flag","type":"bool"},
+				{"name":"_method","type":"uint8"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "initialize",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onUpdateInitializerTransferCodeCallback",
+			"inputs": [
+				{"name":"_code","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onUpdateClientTransferCodeCallback",
+			"inputs": [
+				{"name":"_code","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onUpdateLocalChainIdCallback",
+			"inputs": [
+				{"name":"_localChainId","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "tokenBalance",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"tokenBalance","type":"uint256"}
+			]
+		},
+		{
+			"name": "jettonWallet",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"jettonWallet","type":"address"}
+			]
+		}
+	],
+	"data": [
+		{"key":1,"name":"owner_","type":"address"},
+		{"key":2,"name":"initializerLib_","type":"address"},
+		{"key":3,"name":"notifyTransferSendingResult_","type":"bool"},
+		{"key":4,"name":"disableHashValidation_","type":"bool"},
+		{"key":5,"name":"hashVersion_","type":"uint8"}
+	],
+	"events": [
+		{
+			"name": "SetInitializerEvent",
+			"inputs": [
+				{"name":"_initializerAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SetExternalRelayEvent",
+			"inputs": [
+				{"name":"_externalRelayAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SetLocalChainIdEvent",
+			"inputs": [
+				{"name":"_localChainId","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "InitiateTransferEvent",
+			"inputs": [
+				{"name":"_dstChainId","type":"uint64"},
+				{"name":"_dstAddress","type":"uint256"},
+				{"name":"_txId","type":"uint256"},
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_payload","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "PayloadReceivedEvent",
+			"inputs": [
+				{"name":"_srcChainId","type":"uint64"},
+				{"name":"_srcAddress","type":"uint256"},
+				{"name":"_txId","type":"uint256"},
+				{"name":"_transferHash","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "AddSenderEvent",
+			"inputs": [
+				{"name":"_sender","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "RemoveSenderEvent",
+			"inputs": [
+				{"name":"_sender","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "AddTrustedSourceAddressEvent",
+			"inputs": [
+				{"name":"_chainId","type":"uint64"},
+				{"name":"_address","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "RemoveTrustedSourceAddressEvent",
+			"inputs": [
+				{"name":"_chainId","type":"uint64"},
+				{"name":"_address","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SetUseEncryptionEvent",
+			"inputs": [
+				{"name":"_flag","type":"bool"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SetNotifyTransferSendingResultEvent",
+			"inputs": [
+				{"name":"_flag","type":"bool"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SetDisableHashValidationEvent",
+			"inputs": [
+				{"name":"_flag","type":"bool"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "TransferContractDeployEvent",
+			"inputs": [
+				{"name":"_address","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "TransferErrorEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_errorCode","type":"uint16"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "UpdateChainsListEvent",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SuccessTransferExecutedEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ErrorTransferExecutedEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_errorCode","type":"uint16"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ResendAsterizmTransferEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_feeAmount","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "TransferSendingResultNotification",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_statusCode","type":"uint8"}
+			],
+			"outputs": [
+			]
+		}
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"owner_","type":"address"},
+		{"name":"trustedAddresses","type":"map(uint64,uint256)"},
+		{"components":[{"name":"exists","type":"bool"},{"name":"chainType","type":"uint8"}],"name":"chains","type":"map(uint64,tuple)"},
+		{"components":[{"name":"exists","type":"bool"},{"name":"successIzReceive","type":"bool"},{"name":"successClReceive","type":"bool"},{"name":"successClExecute","type":"bool"},{"name":"msgValue","type":"uint128"},{"name":"dto","type":"cell"}],"name":"inboundTransfers","type":"map(uint256,tuple)"},
+		{"components":[{"name":"exists","type":"bool"},{"name":"successIzReceive","type":"bool"},{"name":"successClReceive","type":"bool"},{"name":"successClExecute","type":"bool"},{"name":"msgValue","type":"uint128"},{"name":"dto","type":"cell"}],"name":"outboundTransfers","type":"map(uint256,tuple)"},
+		{"components":[{"name":"exists","type":"bool"}],"name":"senders","type":"map(address,tuple)"},
+		{"name":"trustedAddressCount","type":"uint256"},
+		{"name":"txId","type":"uint256"},
+		{"name":"localChainId","type":"uint64"},
+		{"name":"initializerTransferCode","type":"cell"},
+		{"name":"clientTransferCode","type":"cell"},
+		{"name":"externalRelay","type":"address"},
+		{"name":"initializerLib_","type":"address"},
+		{"name":"notifyTransferSendingResult_","type":"bool"},
+		{"name":"disableHashValidation_","type":"bool"},
+		{"name":"hashVersion_","type":"uint8"},
+		{"name":"tokenBalance","type":"uint256"},
+		{"name":"jettonWallet","type":"address"}
+	]
+}

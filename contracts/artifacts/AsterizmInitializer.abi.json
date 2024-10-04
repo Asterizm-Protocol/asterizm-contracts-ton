@@ -1,0 +1,330 @@
+{
+	"ABI version": 2,
+	"version": "2.3",
+	"header": ["pubkey", "time", "expire"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "addBlockAddress",
+			"inputs": [
+				{"name":"_chainId","type":"uint64"},
+				{"name":"_address","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "removeBlockAddress",
+			"inputs": [
+				{"name":"_chainId","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "updateChainsList",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onUpdateChainsListCallback",
+			"inputs": [
+				{"components":[{"name":"exists","type":"bool"},{"name":"chainType","type":"uint8"}],"name":"_chains","type":"map(uint64,tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "updateLocalChainId",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onUpdateLocalChainIdCallback",
+			"inputs": [
+				{"name":"_localChainId","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getLocalChainId",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"name":"value0","type":"uint64"}
+			]
+		},
+		{
+			"name": "getInitializerTransferCode",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"name":"value0","type":"cell"}
+			]
+		},
+		{
+			"name": "getClientTransferCode",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"name":"value0","type":"cell"}
+			]
+		},
+		{
+			"name": "getChainsList",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"components":[{"name":"exists","type":"bool"},{"name":"chainType","type":"uint8"}],"name":"value0","type":"map(uint64,tuple)"}
+			]
+		},
+		{
+			"name": "initTransfer",
+			"inputs": [
+				{"components":[{"name":"dstChainId","type":"uint64"},{"name":"dstAddress","type":"uint256"},{"name":"transferHash","type":"uint256"},{"name":"txId","type":"uint256"},{"name":"dstFeeAmount","type":"uint128"},{"name":"relay","type":"address"},{"name":"transferResultNotifyFlag","type":"bool"}],"name":"_dto","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "resendTransfer",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_feeAmount","type":"uint128"},
+				{"name":"_relay","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "transferSendingResultNotification",
+			"inputs": [
+				{"name":"_targetAddress","type":"address"},
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_statusCode","type":"uint8"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "receivePayload",
+			"inputs": [
+				{"components":[{"name":"srcChainId","type":"uint64"},{"name":"srcAddress","type":"uint256"},{"name":"dstChainId","type":"uint64"},{"name":"dstAddress","type":"uint256"},{"name":"gasLimit","type":"uint256"},{"name":"txId","type":"uint256"},{"name":"transferHash","type":"uint256"},{"name":"payload","type":"cell"}],"name":"_dto","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "manageTrustedRelay",
+			"inputs": [
+				{"name":"_relayAddress","type":"address"},
+				{"name":"_fee","type":"uint128"},
+				{"name":"_systemFee","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "updateTrustedRelayFee",
+			"inputs": [
+				{"name":"_fee","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "removeTrustedRelay",
+			"inputs": [
+				{"name":"_relayAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getRelayData",
+			"inputs": [
+				{"name":"_relayAddress","type":"address"}
+			],
+			"outputs": [
+				{"components":[{"name":"externalRelayExists","type":"bool"},{"name":"externalRelayFee","type":"uint128"},{"name":"systemFee","type":"uint128"}],"name":"value0","type":"tuple"}
+			]
+		},
+		{
+			"name": "blockAddresses",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"blockAddresses","type":"map(uint64,uint256)"}
+			]
+		}
+	],
+	"data": [
+		{"key":1,"name":"owner_","type":"address"},
+		{"key":2,"name":"translatorLib_","type":"address"},
+		{"key":3,"name":"initializerTransferCode_","type":"cell"},
+		{"key":4,"name":"clientTransferCode_","type":"cell"}
+	],
+	"events": [
+		{
+			"name": "SetTranslatorEvent",
+			"inputs": [
+				{"name":"_translatorAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SetDecriptionSendAvailableEvent",
+			"inputs": [
+				{"name":"_flag","type":"bool"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SetEncriptionSendAvailableEvent",
+			"inputs": [
+				{"name":"_flag","type":"bool"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "AddBlockAddressEvent",
+			"inputs": [
+				{"name":"_cheinId","type":"uint64"},
+				{"name":"_address","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "RemoveBlockAddressEvent",
+			"inputs": [
+				{"name":"_cheinId","type":"uint64"},
+				{"name":"_address","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "TransferHashContractDeployEvent",
+			"inputs": [
+				{"name":"_address","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "NonceContractDeployEvent",
+			"inputs": [
+				{"name":"_address","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "InitTransferSuccessfullyEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "NonceErrorEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_errorCode","type":"uint16"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "UpdateChainsListEvent",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "PayloadErrorEvent",
+			"inputs": [
+				{"name":"_srcChainId","type":"uint64"},
+				{"name":"_srcAddress","type":"address"},
+				{"name":"_dstChainId","type":"uint64"},
+				{"name":"_dstAddress","type":"address"},
+				{"name":"_nonce","type":"uint256"},
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_payload","type":"cell"},
+				{"name":"_reason","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SentPayloadEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_dstAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SetInitializerEvent",
+			"inputs": [
+				{"name":"_address","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "TrustedRelayEvent",
+			"inputs": [
+				{"name":"_initializer","type":"address"},
+				{"name":"_relayAddress","type":"address"},
+				{"name":"_fee","type":"uint128"},
+				{"name":"_systemFee","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "RemoveTrustedRelayEvent",
+			"inputs": [
+				{"name":"_relayAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		}
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"owner_","type":"address"},
+		{"components":[{"name":"exists","type":"bool"},{"name":"fee","type":"uint128"},{"name":"systemFee","type":"uint128"}],"name":"trustedRelays","type":"map(address,tuple)"},
+		{"name":"localChainId","type":"uint64"},
+		{"name":"blockAddresses","type":"map(uint64,uint256)"},
+		{"components":[{"name":"exists","type":"bool"},{"name":"chainType","type":"uint8"}],"name":"chains","type":"map(uint64,tuple)"},
+		{"name":"translatorLib_","type":"address"},
+		{"name":"initializerTransferCode_","type":"cell"},
+		{"name":"clientTransferCode_","type":"cell"}
+	]
+}

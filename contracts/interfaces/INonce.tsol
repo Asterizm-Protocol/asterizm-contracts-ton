@@ -1,0 +1,21 @@
+pragma ton-solidity >= 0.70.0;
+
+import "./IAsterizmStructs.tsol";
+
+/// Asterizm nonce interface
+interface INonce is IAsterizmStructs {
+
+    /// Return nonce
+    function getNonce() external internalMsg view responsible returns(uint);
+
+    /// Increase nonce
+    /// @param _transferHash uint
+    /// @return uint, uint
+    function increaseNonce(uint _transferHash) external internalMsg responsible returns(uint, uint);
+
+    /// Increase nonce with validation
+    /// @param _transferHash uint
+    /// @param _nonce uint
+    /// @return IzIninTransferRequestDto, uint
+    function increaseNonceWithValidation(uint _transferHash, uint _nonce) external internalMsg responsible returns(uint, uint);
+}

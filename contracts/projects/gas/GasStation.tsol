@@ -1,0 +1,246 @@
+pragma ton-solidity >= 0.70.0;
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.tsol";
+import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenWallet.tsol";
+import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensTransferCallback.tsol";
+import "./GasStationErrors.tsol";
+import "./GasStationEnvs.tsol";
+import "asterizmprotocol/contracts/tvm/AsterizmClient.tsol";
+
+contract GasStation is AsterizmClient, IAcceptTokensTransferCallback {
+
+    using UintLib for uint;
+    using AddressLib for address;
+
+    event CoinsReceivedEvent(uint _amount, uint _transactionId, address _dstAddress);
+    event GasSendEvent(uint64 _dstChainId, uint _transactionId, TvmCell _payload);
+    event AddStableCoinEvent(address _rootAddress, address _walletAddress);
+    event RemoveStableCoinEvent(address _address);
+    event SetMinUsdAmountEvent(uint _amount);
+    event SetMaxUsdAmountEvent(uint _amount);
+    event SetMinUsdAmountPerChainEvent(uint _amount);
+    event SetMaxUsdAmountPerChainEvent(uint _amount);
+    event WithdrawCoinsEvent(address _target, uint128 _amount);
+    event WithdrawTokensEvent(address _token, address _target, uint _amount);
+    event WithdrawNotExistsTokensEvent(address _token, address _target, uint _amount);
+
+    struct StableCoin {
+        bool exists;
+        address walletAddress;
+        uint8 decimals;
+    }
+
+    mapping(address => StableCoin) public stableCoins;
+    uint public minUsdAmount;
+    uint public maxUsdAmount;
+    uint public minUsdAmountPerChain;
+    uint public maxUsdAmountPerChain;
+
+    uint static nonce_; //TODO: drop this after debeloplent
+
+    constructor() AsterizmClient() {}
+
+    /// Withdraw coins
+    /// @param _target address  Target address
+    /// @param _amount uint128  Withdrawal amount
+    function withdrawCoins(address _target, uint128 _amount) external view onlyOwner {
+        tvm.rawReserve(GasStationEnvs.GAS__MIN_CONTRACT_BALANCE, 0);
+        _target.transfer({ value: _amount, flag: AsterizmTransferFlags.SENDER_PAYS_FEES, bounce: false });
+
+        emit WithdrawCoinsEvent(_target, _amount);
+    }
+
+    /// Withdraw exists tokens
+    /// @param _tokenRoot ITokenRoot  Token
+    /// @param _target address  Target address
+    /// @param _amount uint128  Amount
+    function withdrawTokens(ITokenRoot _tokenRoot, address _target, uint128 _amount) external onlyOwner {
+        address tokenRootAddress = address(_tokenRoot);
+        require(stableCoins[tokenRootAddress].walletAddress.value != 0, GasStationErrors.GAS__TOKEN_NOT_EXISTS__ERROR);
+        TvmCell empty;
+        ITokenWallet(stableCoins[tokenRootAddress].walletAddress).transfer{ value: GasStationEnvs.GAS__WITHDRAW_TOKENS_AMOUNT, flag: AsterizmTransferFlags.SENDER_PAYS_FEES, bounce: true }(
+            _amount,
+            _target,
+            0,
+            msg.sender,
+            false,
+            empty
+        );
+
+        emit WithdrawTokensEvent(address(_tokenRoot), _target, _amount);
+    }
+
+    /// Set minimum amount in USD
+    /// @param _amount uint  Amount
+    function setMinUsdAmount(uint _amount) external onlyOwner {
+        minUsdAmount = _amount;
+        emit SetMinUsdAmountEvent(_amount);
+        msg.sender.transfer({ value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false });
+    }
+
+    /// Set maximum amount in USD
+    /// @param _amount uint  Amount
+    function setMaxUsdAmount(uint _amount) external onlyOwner {
+        maxUsdAmount = _amount;
+        emit SetMaxUsdAmountEvent(_amount);
+        msg.sender.transfer({ value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false });
+    }
+
+    /// Set minimum amount in USD per chain
+    /// @param _amount uint  Amount
+    function setMinUsdAmountPerChain(uint _amount) external onlyOwner {
+        minUsdAmountPerChain = _amount;
+        emit SetMinUsdAmountPerChainEvent(_amount);
+        msg.sender.transfer({ value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false });
+    }
+
+    /// Set maximum amount in USD per chain
+    /// @param _amount uint  Amount
+    function setMaxUsdAmountPerChain(uint _amount) external onlyOwner {
+        maxUsdAmountPerChain = _amount;
+        emit SetMaxUsdAmountPerChainEvent(_amount);
+        msg.sender.transfer({ value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false });
+    }
+
+    /** Stable coins logic */
+
+    /// Add stable coin
+    /// @param _tokenRoot ITokenRoot  Token root address
+    /// @param _decimals uint8  Token decimsla
+    function addStableCoin(ITokenRoot _tokenRoot, uint8 _decimals) external onlyOwner {
+        address tokenRootAddress = address(_tokenRoot);
+        require(!stableCoins[tokenRootAddress].exists, GasStationErrors.GAS__STABLE_COIN_EXISTS_ALREADY__ERROR);
+    
+        stableCoins[tokenRootAddress] = StableCoin(true, address(0), _decimals);
+
+        _tokenRoot.deployWallet{
+            value: 0,
+            bounce: true,
+            flag: AsterizmTransferFlags.REMAINING_GAS,
+            callback: onStableCoinWalletDeployed
+        } (address(this), GasStationEnvs.GAS__MIN_STABLE_WALLET_BALANCE);
+    }
+
+    /// Stable coin wallet deployed callback
+    /// @param _walletAddress address  Wallet address
+    function onStableCoinWalletDeployed(address _walletAddress) public {
+        require(stableCoins[msg.sender].exists, GasStationErrors.GAS__STABLE_COIN_NOT_EXISTS__ERROR);
+
+        tvm.rawReserve(GasStationEnvs.GAS__MIN_CONTRACT_BALANCE, 0);
+        stableCoins[msg.sender].walletAddress = _walletAddress;
+
+        emit AddStableCoinEvent(msg.sender, _walletAddress);
+    }
+
+    /// Remove stable coin
+    /// @param _tokenAddress address  Token address
+    function removeStableCoin(address _tokenAddress) external onlyOwner {
+        delete stableCoins[_tokenAddress];
+        emit RemoveStableCoinEvent(_tokenAddress);
+    }
+
+
+    /** External logic */
+
+    event BuildGasPayloadEvent(TvmCell _payload);
+    function buildGasPayload(uint64[] _chainIds, uint[] _amounts, uint[] _receivers) external pure {
+        emit BuildGasPayloadEvent(abi.encode(_chainIds, _amounts, _receivers));
+    }
+
+    /// Accept tokens transfer callback (send gas initiation)
+    /// @param _tokenRoot address  Root token address
+    /// @param _amount uint128  Token amount transfer
+    /// @param _sender address  Token sender
+    /// @param _senderWallet address  Sender token wallet address
+    /// @param _remainingGasTo address  Reminding gas to address
+    /// @param _payload TvmCell  Callback payload
+    function onAcceptTokensTransfer(
+        address _tokenRoot,
+        uint128 _amount,
+        address _sender,
+        address _senderWallet,
+        address _remainingGasTo,
+        TvmCell _payload
+    ) external override {
+        StableCoin stableCoin = stableCoins[_tokenRoot];
+        require(stableCoin.walletAddress.value != 0, GasStationErrors.GAS__TOKEN_NOT_EXISTS__ERROR);
+        require(msg.sender == stableCoin.walletAddress, GasStationErrors.GAS__WRONG_TOKEN_ROOT_SENDER__ERROR);
+
+        (uint64[] chainIds, uint[] amounts, uint[] receivers) = abi.decode(_payload, (uint64[], uint[], uint[]));
+
+        uint tokenDecimals = 10 ** uint(stableCoin.decimals);
+        uint128 sum;
+        for (uint i = 0; i < amounts.length; i++) {
+            if (minUsdAmountPerChain > 0) {
+                uint amountInUsd = amounts[i] / tokenDecimals;
+                require(amountInUsd >= minUsdAmountPerChain, GasStationErrors.GAS__MINIMUM_AMOUNT_PER_CHAIN_VALIDATION__ERROR);
+            }
+            if (maxUsdAmountPerChain > 0) {
+                uint amountInUsd = amounts[i] / tokenDecimals;
+                require(amountInUsd <= maxUsdAmountPerChain, GasStationErrors.GAS__MIXIMUM_AMOUNT_PER_CHAIN_VALIDATION__ERROR);
+            }
+
+            sum += uint128(amounts[i]);
+        }
+
+        require(sum > 0, GasStationErrors.GAS__WRONG_AMOUNT__ERROR);
+        require(sum == _amount, GasStationErrors.GAS__WRONG_TOKEN_AMOUNT__ERROR);
+
+        uint sumInUsd = sum / tokenDecimals;
+        require(sumInUsd > 0, GasStationErrors.GAS__WRONG_AMOUNT_IN_USD__ERROR);
+        if (minUsdAmount > 0) {
+            require(sumInUsd >= minUsdAmount, GasStationErrors.GAS__MINIMUM_AMOUNT_VALIDATION__ERROR);
+        }
+        if (maxUsdAmount > 0) {
+            require(sumInUsd <= maxUsdAmount, GasStationErrors.GAS__MIXIMUM_AMOUNT_VALIDATION__ERROR);
+        }
+
+        TvmCell empty;
+        ITokenWallet(stableCoin.walletAddress).transfer{ value: GasStationEnvs.GAS__WITHDRAW_TOKENS_AMOUNT, flag: AsterizmTransferFlags.SENDER_PAYS_FEES, bounce: true }(
+            sum,
+            owner(),
+            0,
+            address(this),
+            false,
+            empty
+        );
+
+        for (uint i = 0; i < amounts.length; i++) {
+            uint txId = _getTxId();
+            TvmCell payload = abi.encode(receivers[i], amounts[i], txId, _tokenRoot.toUint(), stableCoin.decimals);
+            _initAsterizmTransferEvent(chainIds[i], payload);
+            emit GasSendEvent(chainIds[i], txId, payload);
+        }
+    }
+
+    /// Receive payload
+    /// @param _dto ClAsterizmReceiveRequestDto  Method DTO
+    /// @return uint16  Return error code. 0 - ok, >0 - error 
+    function _asterizmReceive(ClAsterizmReceiveRequestDto _dto) internal override returns(uint16) {
+        (uint dstAddressUint, uint amount, uint txId , uint tokenAddressUint, uint8 decimals, uint stableRate) = abi.decode(_dto.payload, (uint, uint, uint, uint, uint8, uint));
+        if (
+            !_validTransferHash(
+                _dto.srcChainId, _dto.srcAddress, _dto.dstChainId, _dto.dstAddress, _dto.txId,
+                abi.encode(dstAddressUint, amount, txId, tokenAddressUint, decimals), _dto.transferHash
+            )
+        ) {
+            return GasStationErrors.GAS__INVALID_TRANSFER_HASH__ERROR;
+        }
+
+        address dstAddress = dstAddressUint.toAddress();
+        uint128 amountToSend = uint128(amount * stableRate / (10 ** uint(decimals)));
+        if (address(this).balance < amountToSend) {
+            return GasStationErrors.GAS__BALANCE_NOT_ENOUQH__ERROR;
+        }
+
+        if (dstAddress != address(this)) {
+            dstAddress.transfer({ value: amountToSend, flag: AsterizmTransferFlags.RECEIVER_PAYS_FEES, bounce: false });
+        }
+
+        emit CoinsReceivedEvent(amountToSend, _dto.txId, dstAddress);
+
+        return GasStationErrors.GAS__SUCCESS;
+    }
+}

@@ -1,0 +1,262 @@
+{
+	"ABI version": 2,
+	"version": "2.3",
+	"header": ["pubkey", "time", "expire"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "addRelayer",
+			"inputs": [
+				{"name":"_relayer","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "removeRelayer",
+			"inputs": [
+				{"name":"_relayer","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setInitializer",
+			"inputs": [
+				{"name":"_initializerReceiver","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "addChain",
+			"inputs": [
+				{"name":"_chainId","type":"uint64"},
+				{"name":"_chainType","type":"uint8"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "addChains",
+			"inputs": [
+				{"name":"_chainIds","type":"uint64[]"},
+				{"name":"_chainTypes","type":"uint8[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "removeChainById",
+			"inputs": [
+				{"name":"_chainId","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "updateTrustedRelayFee",
+			"inputs": [
+				{"name":"_fee","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getLocalChainId",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"name":"value0","type":"uint64"}
+			]
+		},
+		{
+			"name": "getChainsList",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"components":[{"name":"exists","type":"bool"},{"name":"chainType","type":"uint8"}],"name":"value0","type":"map(uint64,tuple)"}
+			]
+		},
+		{
+			"name": "sendMessage",
+			"inputs": [
+				{"components":[{"name":"srcAddress","type":"uint256"},{"name":"dstChainId","type":"uint64"},{"name":"dstAddress","type":"uint256"},{"name":"txId","type":"uint256"},{"name":"transferHash","type":"uint256"},{"name":"dstFeeAmount","type":"uint128"},{"name":"transferResultNotifyFlag","type":"bool"}],"name":"_dto","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "logExternalMessage",
+			"inputs": [
+				{"name":"_externalRelayAddress","type":"address"},
+				{"components":[{"name":"srcAddress","type":"uint256"},{"name":"dstChainId","type":"uint64"},{"name":"dstAddress","type":"uint256"},{"name":"txId","type":"uint256"},{"name":"transferHash","type":"uint256"},{"name":"dstFeeAmount","type":"uint128"},{"name":"transferResultNotifyFlag","type":"bool"}],"name":"_dto","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "resendMessage",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_senderAddress","type":"uint256"},
+				{"name":"_feeAmount","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "transferSendingResultNotification",
+			"inputs": [
+				{"name":"_targetAddress","type":"address"},
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_statusCode","type":"uint8"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "transferMessage",
+			"inputs": [
+				{"name":"_gasLimit","type":"uint256"},
+				{"name":"_payload","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "chains",
+			"inputs": [
+			],
+			"outputs": [
+				{"components":[{"name":"exists","type":"bool"},{"name":"chainType","type":"uint8"}],"name":"chains","type":"map(uint64,tuple)"}
+			]
+		}
+	],
+	"data": [
+		{"key":1,"name":"owner_","type":"address"},
+		{"key":2,"name":"localChainId_","type":"uint64"},
+		{"key":3,"name":"localChainType_","type":"uint8"},
+		{"key":4,"name":"nonce_","type":"uint256"}
+	],
+	"events": [
+		{
+			"name": "SetInitializerEvent",
+			"inputs": [
+				{"name":"_initializerAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "AddRelayerEvent",
+			"inputs": [
+				{"name":"_relayerAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "RemoveRelayerEvent",
+			"inputs": [
+				{"name":"_relayerAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "AddChainEvent",
+			"inputs": [
+				{"name":"_chainId","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "RemoveChainEvent",
+			"inputs": [
+				{"name":"_chainId","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SetLocalChainEvent",
+			"inputs": [
+				{"name":"_chainId","type":"uint64"},
+				{"name":"_chainType","type":"uint8"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SendMessageEvent",
+			"inputs": [
+				{"name":"_feeValue","type":"uint128"},
+				{"name":"_payload","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SuccessTransferEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "LogExternalMessageEvent",
+			"inputs": [
+				{"name":"_feeValue","type":"uint256"},
+				{"name":"_externalRelayAddress","type":"address"},
+				{"name":"_payload","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "TransferSendEvent",
+			"inputs": [
+				{"name":"_srcChainId","type":"uint64"},
+				{"name":"_srcAddress","type":"uint256"},
+				{"name":"_dstAddress","type":"uint256"},
+				{"name":"_transferHash","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ResendFailedTransferEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_senderAddress","type":"uint256"},
+				{"name":"_feeAmount","type":"uint128"}
+			],
+			"outputs": [
+			]
+		}
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"owner_","type":"address"},
+		{"components":[{"name":"exists","type":"bool"}],"name":"chainTypes","type":"map(uint8,tuple)"},
+		{"name":"initializerLib","type":"address"},
+		{"components":[{"name":"exists","type":"bool"}],"name":"relayers","type":"map(address,tuple)"},
+		{"components":[{"name":"exists","type":"bool"},{"name":"chainType","type":"uint8"}],"name":"chains","type":"map(uint64,tuple)"},
+		{"name":"localChainId_","type":"uint64"},
+		{"name":"localChainType_","type":"uint8"},
+		{"name":"nonce_","type":"uint256"}
+	]
+}

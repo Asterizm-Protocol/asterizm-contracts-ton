@@ -1,0 +1,46 @@
+{
+	"ABI version": 2,
+	"version": "2.3",
+	"header": ["time"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "isExists",
+			"inputs": [
+				{"name":"answerId","type":"uint32"},
+				{"name":"_transferHash","type":"uint256"}
+			],
+			"outputs": [
+				{"name":"value0","type":"uint256"},
+				{"name":"value1","type":"bool"},
+				{"name":"value2","type":"uint8"}
+			]
+		}
+	],
+	"data": [
+		{"key":1,"name":"owner_","type":"address"},
+		{"key":2,"name":"hash_","type":"uint256"}
+	],
+	"events": [
+		{
+			"name": "DeployContractEvent",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		}
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"owner_","type":"address"},
+		{"name":"hash_","type":"uint256"}
+	]
+}

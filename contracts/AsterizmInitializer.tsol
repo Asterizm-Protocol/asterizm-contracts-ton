@@ -1,0 +1,377 @@
+pragma ton-solidity >= 0.70.0;
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+import "./interfaces/INonce.tsol";
+import "./interfaces/ITranslator.tsol";
+import "./interfaces/IClientReceiverContract.tsol";
+import "./interfaces/IInitializerSender.tsol";
+import "./interfaces/IInitializerReceiver.tsol";
+import "./base/AsterizmStructs.tsol";
+import "./base/AsterizmErrors.tsol";
+import "./base/AsterizmTransferFlags.tsol";
+import "./base/AsterizmEnvs.tsol";
+import "./base/AsterizmOwnable.tsol";
+import "./libs/AddressLib.tsol";
+import "./libs/BytesLib.tsol";
+import "./libs/UintLib.tsol";
+import "./base/AsterizmInitializerTransfer.tsol";
+import "./base/AsterizmConfig.tsol";
+
+contract AsterizmInitializer is AsterizmOwnable, IInitializerSender, IInitializerReceiver, AsterizmStructs, AsterizmConfig {
+
+    using AddressLib for address;
+    using BytesLib for bytes;
+    using UintLib for uint;
+
+    /// Set translator event
+    /// @param _translatorAddress address
+    event SetTranslatorEvent(address _translatorAddress);
+
+    /// Set decryption send availeble event
+    /// @param _flag bool
+    event SetDecriptionSendAvailableEvent(bool _flag);
+
+    /// Set encryption send availeble event
+    /// @param _flag bool
+    event SetEncriptionSendAvailableEvent(bool _flag);
+
+    /// Block address event
+    /// @param _cheinId uint64
+    /// @param _address uint
+    event AddBlockAddressEvent(uint64 _cheinId, uint _address);
+
+    /// Remove block address event
+    /// @param _cheinId uint64
+    /// @param _address uint
+    event RemoveBlockAddressEvent(uint64 _cheinId, uint _address);
+
+    /// Asterizm transfet hash contract deploy event
+    /// @param _address address
+    event TransferHashContractDeployEvent(address _address);
+
+    /// Asterizm nonce contract deploy event
+    /// @param _address address
+    event NonceContractDeployEvent(address _address);
+
+    /// Init transfer successfully event
+    /// @param _transferHash uint
+    event InitTransferSuccessfullyEvent(uint _transferHash);
+
+    /// Nonce error event
+    /// @param _transferHash uint
+    /// @param _errorCode uint16
+    event NonceErrorEvent(uint _transferHash, uint16 _errorCode);
+
+    /// Update chains list event
+    event UpdateChainsListEvent();
+
+    /// Payload error event
+    /// Client can listen it for moniroting error transfers
+    /// @param _srcChainId uint64  Source chain ID
+    /// @param _srcAddress address  Source address
+    /// @param _dstChainId uint64  Destination chain ID
+    /// @param _dstAddress address  Destination address
+    /// @param _nonce uint  Nonce
+    /// @param _transferHash uint  Tansfer hash
+    /// @param _payload bytes  Payload
+    /// @param _reason bytes  Error reason
+    event PayloadErrorEvent(uint64 _srcChainId, address _srcAddress, uint64 _dstChainId, address _dstAddress, uint _nonce, uint _transferHash, TvmCell _payload, TvmCell _reason);
+
+    /// Sent payload event
+    /// @param _transferHash uint  Transfer hash
+    event SentPayloadEvent(uint _transferHash, address _dstAddress);
+
+    struct Nonce {
+        bool exists;
+        address sender;
+        TvmCell dto;
+    }
+
+    uint64 private localChainId;
+    mapping(uint64 => uint) public blockAddresses;
+    mapping(uint64 => AsterizmChain) private chains;
+
+    ITranslator static translatorLib_;
+    TvmCell static initializerTransferCode_;
+    TvmCell static clientTransferCode_;
+
+    constructor () {
+        tvm.accept();
+
+        emit SetTranslatorEvent(address(translatorLib_));
+
+        tvm.rawReserve(AsterizmEnvs.INITIALIZER__MIN_CONTRACT_BALANCE, 0);
+        msg.sender.transfer({
+            value: 0,
+            flag: AsterizmTransferFlags.ALL_NOT_RESERVED,
+            bounce: false
+        });
+    }
+
+    /** Modifiers */
+
+    /// Only translator modifier
+    modifier onlyTranslator() {
+        require(msg.sender == address(translatorLib_), AsterizmErrors.INITIALIZER__ONLY_TRANSLATOR__ERROR);
+        _;
+    }
+
+    /// Only translator modifier
+    modifier onlyTranslatorOrExternalRelay() {
+        require(msg.sender == address(translatorLib_) || getRelayData(msg.sender).externalRelayExists, AsterizmErrors.INITIALIZER__ONLY_TRANSLATOR_OR_EXTERNAL_RELAY__ERROR);
+        _;
+    }
+
+    /// Send residue modifier
+    modifier sendResidue() {
+        tvm.rawReserve(AsterizmEnvs.INITIALIZER__MIN_CONTRACT_BALANCE, 0);
+        _;
+        msg.sender.transfer({
+            value: 0,
+            flag: AsterizmTransferFlags.ALL_NOT_RESERVED,
+            bounce: false
+        });
+    }
+
+
+    /*******************/
+    /** Internal logic */
+    /*******************/
+
+    /** External contracts */
+    
+    /// Return transfer hash contract status init
+    /// @param _transferHash uint  Transfer hash
+    /// @return TvmCell  Transfer hash contract state init
+    function _getTransferHashContractStatiInit(uint _transferHash) private view returns(TvmCell) {
+        return tvm.buildStateInit({
+            contr: AsterizmInitializerTransfer,  
+            varInit: {
+                owner_: address(this),
+                hash_: _transferHash
+            },
+            pubkey: 0,
+            code: initializerTransferCode_
+        });
+    }
+
+    /// Deploy transfer hash contract
+    /// @param _transferHash uint  Transfer hash
+    /// @return address  Transfer hash contract address
+    function _deployTransferHashContract(uint _transferHash) private view returns(address) {
+        address contractAddress = new AsterizmInitializerTransfer{
+            stateInit: _getTransferHashContractStatiInit(_transferHash),
+            value: AsterizmEnvs.INITIALIZER__TRANSFER_CONTRACT_DEPLOY_VALUE,
+            wid: address(this).wid,
+            flag: AsterizmTransferFlags.SENDER_PAYS_FEES
+        }();
+        emit TransferHashContractDeployEvent(contractAddress);
+
+        return contractAddress;
+    }
+
+    /// Return transfer hash contract address
+    /// @param _transferHash uint  Transfer hash
+    /// @return address  Transfer hash contract address
+    function _getTransferHashContractAddress(uint _transferHash) private view returns(address) {
+        return address(tvm.hash(_getTransferHashContractStatiInit(_transferHash)));
+    }
+
+    /** Other internal functions */
+
+    /// Block address
+    /// @param _chainId uint64  Chain id
+    /// @param _address uint  Available flag
+    function addBlockAddress(uint64 _chainId, uint _address) external onlyOwner sendResidue {
+        blockAddresses[_chainId] = _address;
+        emit AddBlockAddressEvent(_chainId, _address);
+    }
+
+    /// Unblock address
+    /// @param _chainId uint64 Chain id
+    function removeBlockAddress(uint64 _chainId) external onlyOwner sendResidue {
+        require(blockAddresses[_chainId] != uint(0), AsterizmErrors.CLIENT__ADDRESS_IS_NOT_BLOCKED__ERROR);
+        uint blockedAddress = blockAddresses[_chainId];
+        delete blockAddresses[_chainId];
+        emit RemoveBlockAddressEvent(_chainId, blockedAddress);
+    }
+
+    /// Update chains list
+    function updateChainsList() external view onlyOwner sendResidue {
+        translatorLib_.getChainsList{
+            value: AsterizmEnvs.INITIALIZER__MIN_CONTRACT_BALANCE,
+            callback: onUpdateChainsListCallback
+        }();
+    }
+
+    /// Update chains list callback
+    function onUpdateChainsListCallback(mapping(uint64 => AsterizmChain) _chains) public onlyTranslator {
+        chains = _chains;
+        emit UpdateChainsListEvent();
+
+        tvm.rawReserve(AsterizmEnvs.INITIALIZER__MIN_CONTRACT_BALANCE, 0);
+        owner().transfer({
+            value: 0,
+            flag: AsterizmTransferFlags.ALL_NOT_RESERVED,
+            bounce: false
+        });
+    }
+
+    /// Update local chains id
+    function updateLocalChainId() external view onlyOwner sendResidue {
+        translatorLib_.getLocalChainId{
+            value: AsterizmEnvs.INITIALIZER__MIN_CONTRACT_BALANCE,
+            callback: onUpdateLocalChainIdCallback
+        }();
+    }
+
+    /// Update local chains id callback
+    function onUpdateLocalChainIdCallback(uint64 _localChainId) public onlyTranslator {
+        localChainId = _localChainId;
+        
+        tvm.rawReserve(AsterizmEnvs.INITIALIZER__MIN_CONTRACT_BALANCE, 0);
+        owner().transfer({
+            value: 0,
+            flag: AsterizmTransferFlags.ALL_NOT_RESERVED,
+            bounce: false
+        });
+    }
+
+
+    /*******************/
+    /** External logic */
+    /*******************/
+
+    /** Other external functions */
+
+    /// Return local chain id
+    /// @return uint64
+    function getLocalChainId() external internalMsg view responsible override returns(uint64) {
+        return { value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false } localChainId;
+    }
+
+    /// Return initializer transfer code
+    /// @return TvmCell
+    function getInitializerTransferCode() external internalMsg view responsible override returns(TvmCell) {
+        return { value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false } initializerTransferCode_;
+    }
+
+    /// Return client transfer code
+    /// @return TvmCell
+    function getClientTransferCode() external internalMsg view responsible override returns(TvmCell) {
+        return { value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false } clientTransferCode_;
+    }
+
+    /// Return chains list
+    /// @return mapping(uint64 => AsterizmChain)
+    function getChainsList() external internalMsg view responsible override returns(mapping(uint64 => AsterizmChain)) {
+        return { value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false } chains;
+    }
+
+
+    /** Sending logic */
+
+    /// Initiate asterizm transfer
+    /// @param _dto IzIninTransferRequestDto  Method DTO
+    function initTransfer(IzIninTransferRequestDto _dto) external override {
+        address sender = msg.sender;
+        require(sender.toUint() != blockAddresses[localChainId], AsterizmErrors.INITIALIZER__SENDER_ADDRESS_IS_BLOCKED__ERROR);
+        require(_dto.dstAddress != blockAddresses[_dto.dstChainId], AsterizmErrors.INITIALIZER__TARGET_ADDRESS_IS_BLOCKED__ERROR);
+
+        _initTransferPrivate(_dto, sender);
+    }
+
+    /// Init transfer (private)
+    /// @param _dto IzIninTransferRequestDto  Method DTO
+    /// @param _sender address  Sender (cilent) address
+    function _initTransferPrivate(IzIninTransferRequestDto _dto, address _sender) private view {
+        tvm.rawReserve(AsterizmEnvs.INITIALIZER__MIN_CONTRACT_BALANCE, 0);
+        TrSendMessageRequestDto dto = _buildTrSendMessageRequestDto(
+            _sender.toUint(), _dto.dstChainId, _dto.dstAddress, _dto.txId,
+            _dto.transferHash, _dto.dstFeeAmount, _dto.transferResultNotifyFlag
+        );
+
+        if (_dto.relay != address(0) && _dto.relay != address(translatorLib_)) { // External relays logic
+            ConfigDataResponseDto configDto = getRelayData(_dto.relay);
+            if (configDto.externalRelayExists) {
+                uint128 logFee = 0.1 ton;
+                require(msg.value > configDto.systemFee + configDto.externalRelayFee + logFee, AsterizmErrors.INITIALIZER__FEE_NOT_ENOUGH__ERROR);
+                translatorLib_.logExternalMessage{ value: configDto.systemFee + logFee, flag: AsterizmTransferFlags.SENDER_PAYS_FEES, bounce: false }(_dto.relay, dto);
+                ITranslator(_dto.relay).sendMessage{ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false }(dto);
+                return;
+            }
+        }
+
+        emit InitTransferSuccessfullyEvent(_dto.transferHash);
+        translatorLib_.sendMessage{
+            value: 0,
+            flag: AsterizmTransferFlags.ALL_NOT_RESERVED,
+            bounce: false
+        }(dto);
+    }
+
+    /// Resend failed by fee amount transfer
+    /// @param _transferHash uint  Transfer hash
+    /// @param _feeAmount uint128  Transfer fee amount
+    /// @param _relay address  External relay address
+    function resendTransfer(uint _transferHash, uint128 _feeAmount, address _relay) external {
+        require(_feeAmount < msg.value, AsterizmErrors.INITIALIZER__TRANSFER_FEE_VALUE_IS_TOO_SMALL_ERROR);
+        require(address(this).balance >= _feeAmount, AsterizmErrors.INITIALIZER__BALANCE_NOT_ENOUGH__ERROR);
+        address sender = msg.sender;
+
+        if (_relay != address(0) && _relay != address(translatorLib_)) { // External relays logic
+            ConfigDataResponseDto configDto = getRelayData(_relay);
+            if (configDto.externalRelayExists) {
+                ITranslator(_relay).resendMessage{ value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false }(_transferHash, sender.toUint(), _feeAmount);
+                return;
+            }
+        }
+
+        translatorLib_.resendMessage{ value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false }(_transferHash, sender.toUint(), _feeAmount);
+    }
+
+    /// Transfer sending result notification
+    /// @param _targetAddress address  Target client contract address
+    /// @param _transferHash bytes32  Transfer hash
+    /// @param _statusCode uint8  Status code
+    function transferSendingResultNotification(address _targetAddress, bytes32 _transferHash, uint8 _statusCode) external onlyTranslatorOrExternalRelay {
+        IClientReceiverContract(_targetAddress).transferSendingResultNotification{
+            value: AsterizmEnvs.INITIALIZER__NOTIFY_TRANSFER_STATUS_VALUE,
+            flag: AsterizmTransferFlags.RECEIVER_PAYS_FEES,
+            bounce: false
+        }(_transferHash, _statusCode);
+    }
+
+
+    /** Receiving logic */
+
+    /// Receive payload from translator
+    /// @param _dto IzReceivePayloadRequestDto  Method DTO
+    function receivePayload(IzReceivePayloadRequestDto _dto) external internalMsg override onlyTranslatorOrExternalRelay {
+        require(_dto.dstAddress != blockAddresses[localChainId], AsterizmErrors.INITIALIZER__SENDER_ADDRESS_IS_BLOCKED__ERROR);
+
+        _receivePayloadPrivate(_dto);
+    }
+
+    /// Receive payload (private)
+    /// @param _dto IzReceivePayloadRequestDto  Method DTO
+    function _receivePayloadPrivate(IzReceivePayloadRequestDto _dto) private view {
+        tvm.rawReserve(AsterizmEnvs.INITIALIZER__MIN_CONTRACT_BALANCE, 0);
+        IzAsterizmReceiveRequestDto dto = _buildIzAsterizmReceiveRequestDto(
+            _dto.srcChainId, _dto.srcAddress, _dto.dstChainId,
+            _dto.dstAddress, _dto.txId, _dto.transferHash
+        );
+
+        _deployTransferHashContract(_dto.transferHash);
+
+        IClientReceiverContract(_dto.dstAddress.toAddress()).asterizmIzReceive{
+            value: AsterizmEnvs.INITIALIZER__RECEIVE_TRANSFER_CLIENT_CONTRACT_VALUE,
+            flag: AsterizmTransferFlags.RECEIVER_PAYS_FEES,
+            bounce: false
+        } (dto);
+
+        emit SentPayloadEvent(_dto.transferHash, _dto.dstAddress.toAddress());
+        owner().transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
+    }
+}

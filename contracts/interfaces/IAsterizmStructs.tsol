@@ -1,0 +1,139 @@
+pragma ton-solidity >= 0.70.0;
+
+interface IAsterizmStructs {
+
+    /// Asterizm chain struct
+    /// @param exists bool  Exists flag
+    /// @param chainType uint8  Chain type (1 - EVM, 2 - TVM)
+    struct AsterizmChain {
+        bool exists;
+        uint8 chainType;
+    }
+
+    /// Base transfer direction DTO
+    /// @param srcChainId uint64  Source chain ID
+    /// @param srcAddress uint  Source address
+    /// @param dstChainId uint64  Destination chain ID
+    /// @param dstAddress uint  Destination address
+    struct BaseTransferDirectionDto {
+        uint64 srcChainId;
+        uint srcAddress;
+        uint64 dstChainId;
+        uint dstAddress;
+    }
+
+    /// Translator send message request DTO
+    /// @param srcAddress uint  Source address
+    /// @param dstChainId uint64  Destination chain ID
+    /// @param dstAddress uint  Destination address
+    /// @param shouldCheckFee bool  Should check fee flag
+    /// @param txId uint  Transaction ID
+    /// @param transferHash uint  Transfer hash
+    /// @param dstFeeAmount uint128  Fee amount
+    /// @param transferResultNotifyFlag bool  Transfer result notification flag
+    struct TrSendMessageRequestDto {
+        uint srcAddress;
+        uint64 dstChainId;
+        uint dstAddress;
+        uint txId;
+        uint transferHash;
+        uint128 dstFeeAmount;
+        bool transferResultNotifyFlag;
+    }
+
+    /// Initializator receive payload request DTO
+    /// @param srcChainId uint64  Source chain ID
+    /// @param srcAddress uint  Source address
+    /// @param dstChainId uint64  Destination chain ID
+    /// @param dstAddress uint  Destination address
+    /// @param gasLimit uint  Gas limit
+    /// @param txId uint  Transaction ID
+    /// @param transferHash uint  Transfer hash
+    /// @param payload TvmCell  Payload
+    struct IzReceivePayloadRequestDto {
+        uint64 srcChainId;
+        uint srcAddress;
+        uint64 dstChainId;
+        uint dstAddress;
+        uint gasLimit;
+        uint txId;
+        uint transferHash;
+        TvmCell payload;
+    }
+
+    /// Translator transfer message request DTO
+    /// @param gasLimit uint  Gas limit
+    /// @param payload TvmCell  Payload
+    struct TrTransferMessageRequestDto {
+        uint gasLimit;
+        TvmCell payload;
+    }
+
+    /// Initializator initizte transfer request DTO
+    /// @param dstChainId uint64  Destination chain ID
+    /// @param dstAddress uint  Destination address
+    /// @param transferHash uint  Transfer hash
+    /// @param txId uint  Transaction ID
+    /// @param dstFeeAmount uint128  Fee amount
+    /// @param relay address  External relay address
+    /// @param transferResultNotifyFlag bool  Transfer result notification flag
+    struct IzIninTransferRequestDto {
+        uint64 dstChainId;
+        uint dstAddress;
+        uint transferHash;
+        uint txId;
+        uint128 dstFeeAmount;
+        address relay;
+        bool transferResultNotifyFlag;
+    }
+
+    /// Initializer asterizm receive request DTO
+    /// @param srcChainId uint64  Source chain ID
+    /// @param srcAddress uint  Source address
+    /// @param dstChainId uint64  Destination chain ID
+    /// @param dstAddress uint  Destination address
+    /// @param nonce uint  Nonce
+    /// @param txId uint  Transaction ID
+    /// @param transferHash uint  Transfer hash
+    struct IzAsterizmReceiveRequestDto {
+        uint64 srcChainId;
+        uint srcAddress;
+        uint64 dstChainId;
+        uint dstAddress;
+        uint txId;
+        uint transferHash;
+    }
+
+    /// Client asterizm receive request DTO
+    /// @param srcChainId uint64  Source chain ID
+    /// @param srcAddress uint  Source address
+    /// @param dstChainId uint64  Destination chain ID
+    /// @param dstAddress uint  Destination address
+    /// @param nonce uint  Nonce
+    /// @param txId uint  Transaction ID
+    /// @param transferHash uint  Transfer hash
+    /// @param payload TvmCell  Transfer payload
+    struct ClAsterizmReceiveRequestDto {
+        uint64 srcChainId;
+        uint srcAddress;
+        uint64 dstChainId;
+        uint dstAddress;
+        uint txId;
+        uint transferHash;
+        TvmCell payload;
+    }
+
+    /// Client initiation transfer request DTO
+    /// @param dstChainId uint64  Destination chain ID
+    /// @param dstAddress uint  Destination address
+    /// @param txId uint  Transaction ID
+    /// @param transferHash uint  Transfer hash
+    /// @param dstFeeAmount uint128  Fee amount
+    struct ClInitTransferRequestDto {
+        uint64 dstChainId;
+        uint dstAddress;
+        uint txId;
+        uint transferHash;
+        uint128 dstFeeAmount;
+    }
+}
