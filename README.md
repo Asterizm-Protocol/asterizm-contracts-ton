@@ -1,4 +1,4 @@
-# asterism
+# Asterism
 
 ## Project structure
 
@@ -8,6 +8,8 @@
 -   `scripts` - scripts used by the project, mainly the deployment scripts.
 
 ## How to use
+
+Check [DOCS.md](./DOCS.md) or visit [Asterizm Docs](https://docs.asterizm.io/)
 
 ### Build
 
