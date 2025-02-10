@@ -10,6 +10,7 @@ export const Opcodes = {
     addChain: 0x5c057031,
     setInitializer: 0x413d126c,
     addRelayer: 0x48fc0650,
+    transferMessage: 0x24747daa,
   };
 /*
   {
@@ -99,6 +100,26 @@ export class AsterizmTranslator implements Contract {
                 .endCell(),
         });
     }
+
+    public async sendTransferMessage(
+        provider: ContractProvider,
+        via: Sender,
+        value: bigint,
+        params: {
+            _gasLimit: bigint, 
+            _payload: string, 
+        }) {
+            const payload = Cell.fromBase64(params._payload);
+            await provider.internal(via, {
+                value,
+                sendMode: SendMode.PAY_GAS_SEPARATELY,
+                body: beginCell()
+                    .storeUint(Opcodes.transferMessage, 32)
+                    .storeUint(params._gasLimit, 64)
+                    .storeRef(payload)
+                    .endCell(),
+            });
+        }
 
     public async getData(provider: ContractProvider) {
         const data = await decodeAccountData(asterizmTranslatorAbi, provider);

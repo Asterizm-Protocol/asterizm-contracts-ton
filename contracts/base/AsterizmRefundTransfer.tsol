@@ -1,0 +1,61 @@
+pragma ton-solidity >= 0.70.0;
+
+import "./AsterizmEnvs.tsol";
+import "./AsterizmTransferFlags.tsol";
+import "./AsterizmErrors.tsol";
+import "../interfaces/IRefundTransfer.tsol";
+import "./AsterizmOwnable.tsol";
+
+contract AsterizmRefundTransfer is IRefundTransfer, AsterizmOwnable {
+
+    /// Deploy contract event
+    /// @param _selfAddress address
+    event DeployRefundTransferContractEvent(address _selfAddress);
+
+    /// Set refund data contract event
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address
+    event SetRefundDataEvent(address _userAddress, uint _amount, address _tokenAddress);
+
+    uint static hash_;
+
+    address private userAddress;
+    uint private amount;
+    address private tokenAddress;
+
+    constructor() {
+        require(tvm.pubkey() == 0, AsterizmErrors.REFUND__NON_ZERO_PUBLIC_KEY__ERROR);
+        require(owner_.value != 0, AsterizmErrors.REFUND__WRONG_WALLET_OWNER__ERROR);
+        require(owner_ == msg.sender, AsterizmErrors.REFUND__WRONG_OWNER__ERROR);
+
+        emit DeployRefundTransferContractEvent(address(this));
+
+        tvm.rawReserve(AsterizmEnvs.REFUND__MIN_CONTRACT_BALANCE, 0);
+        owner_.transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
+    }
+
+    /// Set data
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address
+    function setData(address _userAddress, uint _amount, address _tokenAddress) external override internalMsg onlyOwner {
+        require(userAddress == address(0) && amount == 0, AsterizmErrors.REFUND__TRANSFER_DATA_SET_ALREADY__ERROR);
+        tvm.rawReserve(AsterizmEnvs.REFUND__MIN_CONTRACT_BALANCE, 0);
+
+        userAddress = _userAddress;
+        amount = _amount;
+        tokenAddress = _tokenAddress;
+
+        emit SetRefundDataEvent(_userAddress, _amount, _tokenAddress);
+
+        msg.sender.transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
+    }
+
+    /// Return refund request data
+    /// @param _sender address  Sender address
+    /// @return uint, address, uint, address
+    function getData(address _sender) external internalMsg view responsible override returns(uint, address, uint, address, address) {
+        return { value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false } (hash_, userAddress, amount, tokenAddress, _sender);
+    }
+}

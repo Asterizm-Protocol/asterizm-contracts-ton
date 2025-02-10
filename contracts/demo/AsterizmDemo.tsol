@@ -1,7 +1,7 @@
 pragma ton-solidity >= 0.70.0;
 pragma AbiHeader expire;
 
-import "asterizmprotocol/contracts/tvm/AsterizmClient.tsol";
+import "../base/AsterizmClient.tsol";
 
 contract AsterizmDemo is AsterizmClient {
 
@@ -9,7 +9,7 @@ contract AsterizmDemo is AsterizmClient {
     event WithdrawCoinsEvent(address _target, uint128 _amount);
 
     string public chainMessage;
-    uint static nonce_; //TODO: drop this after debeloplent
+    uint static nonce_; //TODO: drop this after development
 
     constructor () AsterizmClient() {
         chainMessage = "Chain message";

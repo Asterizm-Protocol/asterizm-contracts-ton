@@ -27,7 +27,7 @@ contract AsterizmNonce is AsterizmOwnable, INonce {
         require(owner_.value != 0, AsterizmErrors.NONCE__WRONG_WALLET_OWNER__ERROR);
         tvm.rawReserve(AsterizmEnvs.NONCE__MIN_CONTRACT_BALANCE, 0);
         emit DeployContractEvent();
-        msg.sender.transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
+        owner_.transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
     }
 
     /// Return nonce

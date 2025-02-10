@@ -1,0 +1,90 @@
+pragma ton-solidity >= 0.70.0;
+
+import "./AsterizmEnvs.tsol";
+import "./AsterizmTransferFlags.tsol";
+import "./AsterizmErrors.tsol";
+import "../interfaces/IRefundRequest.tsol";
+import "./AsterizmOwnable.tsol";
+
+contract AsterizmRefundRequest is IRefundRequest, AsterizmOwnable {
+
+    /// Deploy contract event
+    /// @param _selfAddress address
+    event DeployRefundRequestContractEvent(address _selfAddress);
+
+    /// Set refund data contract event
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address
+    event SetRefundDataEvent(address _userAddress, uint _amount, address _tokenAddress);
+
+    /// Execute refund request contract event
+    /// @param _transferHash uint  Transfer hash
+    /// @param _status bool  Refund request status
+    event ExecuteRefundRequestEvent(uint _transferHash, bool _status);
+
+    uint static hash_;
+
+    address private userAddress;
+    uint private amount;
+    address private tokenAddress;
+    bool private isExecutedFlag;
+    bool private isSuccessProcessFlag;
+    bool private isRejectProcessFlag;
+
+    constructor() {
+        require(tvm.pubkey() == 0, AsterizmErrors.REFUND__NON_ZERO_PUBLIC_KEY__ERROR);
+        require(owner_.value != 0, AsterizmErrors.REFUND__WRONG_WALLET_OWNER__ERROR);
+        require(owner_ == msg.sender, AsterizmErrors.REFUND__WRONG_OWNER__ERROR);
+
+        emit DeployRefundRequestContractEvent(address(this));
+
+        tvm.rawReserve(AsterizmEnvs.REFUND__MIN_CONTRACT_BALANCE, 0);
+        owner().transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
+    }
+
+    /// Set transfer request data
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address
+    function setData(address _userAddress, uint _amount, address _tokenAddress) external internalMsg override onlyOwner {
+        require(userAddress == address(0) && amount == 0, AsterizmErrors.REFUND__TRANSFER_DATA_SET_ALREADY__ERROR);
+        tvm.rawReserve(AsterizmEnvs.REFUND__MIN_CONTRACT_BALANCE, 0);
+
+        userAddress = _userAddress;
+        amount = _amount;
+        tokenAddress = _tokenAddress;
+
+        emit SetRefundDataEvent(_userAddress, _amount, _tokenAddress);
+
+        msg.sender.transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
+    }
+
+    /// Return refund request data
+    /// @param _status bool  Request status
+    /// @return uint, address, uint, address, bool, bool, bool, bool
+    function getData(bool _status) external internalMsg view responsible override returns(uint, address, uint, address, bool, bool, bool, bool) {
+        return { value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false } (
+            hash_, userAddress, amount, tokenAddress, isExecutedFlag, isSuccessProcessFlag, isRejectProcessFlag, _status
+        );
+    }
+
+    /// Execute request
+    /// @param _status bool  Request status
+    function executeRequest(bool _status) external internalMsg responsible override onlyOwner returns(uint, address, uint, address, bool, bool, bool, bool) {
+        require(!isExecutedFlag, AsterizmErrors.REFUND__REQUEST_EXECUTED_ALREADY__ERROR);
+        tvm.rawReserve(AsterizmEnvs.REFUND__MIN_CONTRACT_BALANCE, 0);
+        isExecutedFlag = true;
+        if (_status) {
+            isSuccessProcessFlag = true;
+        } else {
+            isRejectProcessFlag = true;
+        }
+
+        emit ExecuteRefundRequestEvent(hash_, _status);
+
+        return { value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false } (
+            hash_, userAddress, amount, tokenAddress, isExecutedFlag, isSuccessProcessFlag, isRejectProcessFlag, _status
+        );
+    }
+}

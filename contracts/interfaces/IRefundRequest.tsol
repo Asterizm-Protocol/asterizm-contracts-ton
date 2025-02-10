@@ -1,0 +1,21 @@
+pragma ton-solidity >= 0.70.0;
+
+/// Refund request interface
+interface IRefundRequest {
+
+    /// Set refund request data
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address
+    function setData(address _userAddress, uint _amount, address _tokenAddress) external internalMsg;
+
+    /// Return refund request data
+    /// @param _status bool  Request status
+    /// @return uint, address, uint, address, bool, bool, bool, bool
+    function getData(bool _status) external internalMsg view responsible returns(uint, address, uint, address, bool, bool, bool, bool);
+
+    /// Execute refund request
+    /// @param _status bool
+    /// @return uint, address, uint, address, bool, bool, bool, bool
+    function executeRequest(bool _status) external internalMsg responsible returns(uint, address, uint, address, bool, bool, bool, bool);
+}

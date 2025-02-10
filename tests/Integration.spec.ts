@@ -7,11 +7,20 @@ describe.skip('Integeration', () => {
     it('Integeration deploy', async () => {
         const blockchain = await Blockchain.create();
 
-        await integrationDeploy(blockchain);
+        const {
+            deployer,
+            user,
+            translator,
+            initializer,
+            userJettonWallet,
+            multichainToken,
+            mtJettonWallet,
+            mockTrustedAddress
+        } = await integrationDeploy(blockchain);
         
         // debug is not available now
         // test crossChainTransfer call
-        /*const sendValue = 200n;
+        const sendValue = 200n;
         expect(BigInt(await multichainToken.getTokenBalance()).toString()).toEqual('0');
         const result = await multichainToken.sendDebugCrossChainTransfer(deployer.getSender(), toNano('0.02'), {
             dstChainId: 11155111,
@@ -21,6 +30,6 @@ describe.skip('Integeration', () => {
         });
         expect(BigInt(await multichainToken.getTokenBalance()).toString()).toEqual(sendValue.toString());
 
-        console.log(result);*/
+        console.log(result);
     });
 });

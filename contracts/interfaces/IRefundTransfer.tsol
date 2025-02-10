@@ -1,0 +1,16 @@
+pragma ton-solidity >= 0.70.0;
+
+/// Refund request interface
+interface IRefundTransfer {
+
+    /// Set data
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address
+    function setData(address _userAddress, uint _amount, address _tokenAddress) external internalMsg;
+
+    /// Return refund transfer data
+    /// @param _sender address  Sender address
+    /// @return uint, address, uint, address, address
+    function getData(address _sender) external internalMsg view responsible returns(uint, address, uint, address, address);
+}

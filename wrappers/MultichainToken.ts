@@ -4,6 +4,9 @@ import { encodeMessageBody } from '../utils/encodeMessageBody';
 import { decodeAccountData } from '../utils/decodeAccountData';
 
 import multichainTokenAbi from "../contracts/artifacts/MultichainToken.abi.json"
+import asterizmRefundTransferCode from "../contracts/artifacts/AsterizmRefundTransfer.code.json";
+import asterizmRefundRequestCode from "../contracts/artifacts/AsterizmRefundRequest.code.json";
+import asterizmRefundConfirmationCode from "../contracts/artifacts/AsterizmRefundConfirmation.code.json";
 
 export type MultichainTokenContractConfig = {
     owner: Address,
@@ -23,20 +26,23 @@ export const Opcodes = {
     initAsterizmTransfer: 0x7d480ec3,
     addSender: 0x6d1f89ab,
     asterizmClReceive:  0x350f20a9,
-    updateChainsList: 0x383933f2,
+    resendAsterizmTransfer: 0x2168c733,
+    setBaseTokenWallet: 0x3fe7a5c6,
+    addRefundRequest: 0x208824f8,
+    processRefundRequest: 0x234f3688,
+    confirmRefund: 0x65fe9906,
   };
 /*
-  {
-    "debugCrossChainTransfer": "0x59002fe7",
-  "debugTransfer": "0x7fa2f522",
-
-   "addSender": "0x6d1f89ab",
+{
+  "addRefundRequest": "0x208824f8",
+  "addSender": "0x6d1f89ab",
   "addTrustedAddress": "0x6ba2e79b",
   "addTrustedAddresses": "0x2123c787",
   "asterizmClReceive": "0x350f20a9",
   "asterizmIzReceive": "0x74a69ba5",
+  "baseTokenWallet": "0x4a2d1252",
+  "confirmRefund": "0x65fe9906",
   "constructor": "0x68b55f3f",
-  "crossChainTransfer": "0x54dd3360",
   "getDisableHashValidation": "0x3d872dcb",
   "getExternalRelay": "0x2aa27769",
   "getInitializerAddress": "0x43de061d",
@@ -44,26 +50,27 @@ export const Opcodes = {
   "getTrustedAddresses": "0x0c002e5f",
   "initAsterizmTransfer": "0x7d480ec3",
   "initialize": "0x64b885d7",
-  "jettonWallet": "0x30b4b26f",
-  "lastTransfer": "0x71abe610",
+  "onAddRefundRequestCallback": "0x0268cc5d",
   "onAsterizmReceiveCallback": "0x10d8da26",
+  "onCheckRefundConfirmationCallback": "0x00700a29",
   "onInitAsterizmTransferCallback": "0x26df9f2c",
+  "onProcessRefundRequestCallback": "0x58735613",
   "onUpdateChainsListCallback": "0x0baff217",
   "onUpdateClientTransferCodeCallback": "0x302d7c75",
   "onUpdateInitializerTransferCodeCallback": "0x3bffcd7a",
   "onUpdateLocalChainIdCallback": "0x21bd2c09",
+  "processRefundRequest": "0x234f3688",
+  "refundFee": "0x40a4608a",
   "removeSender": "0x553e6d25",
   "removeTrustedSourceAddress": "0x1c30d75d",
   "resendAsterizmTransfer": "0x2168c733",
+  "setBaseTokenWallet": "0x3fe7a5c6",
   "setExternalRelay": "0x5df6d154",
-  "setJettonWallet": "0x1cbd1718",
-  "tokenBalance": "0x433203b5",
-  "transfer": "0x3664dbe1",
+  "tokenBalance": "0x7ed694f2",
   "transferSendingResultNotification": "0x532b776e",
   "updateChainsList": "0x383933f2"
-
 }
-*/  
+*/
 
 export class MultichainToken implements Contract {
     constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
@@ -79,6 +86,9 @@ export class MultichainToken implements Contract {
             notifyTransferSendingResult_ : config.notifyTransferSendingResult,
             disableHashValidation_ : config.disableHashValidation,
             hashVersion_: config.hashVersion,
+            refundTransferCode_: asterizmRefundTransferCode.code,
+            refundRequestCode_: asterizmRefundRequestCode.code,
+            refundConfirmationCode_: asterizmRefundConfirmationCode.code
         });
         const data = Cell.fromBase64(dataStr);
         const init = { code, data };
@@ -133,20 +143,6 @@ export class MultichainToken implements Contract {
         });
     }
 
-    public async sendUpdateChainsList(
-        provider: ContractProvider,
-        via: Sender,
-        value: bigint
-    ) {
-        await provider.internal(via, {
-            value,
-            sendMode: SendMode.PAY_GAS_SEPARATELY,
-            body: beginCell()
-                .storeUint(Opcodes.updateChainsList, 32)
-                .endCell(),
-        });
-    }
-
     public async sendDebugCrossChainTransfer(
         provider: ContractProvider,
         via: Sender,
@@ -192,7 +188,7 @@ export class MultichainToken implements Contract {
         });
     }
 
-    public async sendSetJettonWallet(
+    public async sendSetBaseTokenWallet(
         provider: ContractProvider,
         via: Sender,
         value: bigint,
@@ -204,7 +200,7 @@ export class MultichainToken implements Contract {
             value,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell()
-                .storeUint(Opcodes.setJettonWallet, 32)
+                .storeUint(Opcodes.setBaseTokenWallet, 32)
                 .storeAddress(params.wallet)
                 .endCell(),
         });
@@ -239,7 +235,6 @@ export class MultichainToken implements Contract {
             transferFeeValue: bigint,
         }
     ) {
-        
         await provider.internal(via, {
             value,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
@@ -247,6 +242,26 @@ export class MultichainToken implements Contract {
                 .storeUint(Opcodes.initAsterizmTransfer, 32)
                 .storeUint(params.dstChainId, 64)
                 .storeUint(params.txId, 256)
+                .storeUint(params.transferHash, 256)
+                .storeUint(params.transferFeeValue, 128)
+                .endCell(),
+        });
+    }
+    
+    public async sendResendAsterizmTransfer(
+        provider: ContractProvider,
+        via: Sender,
+        value: bigint,
+        params: {
+            transferHash: bigint,
+            transferFeeValue: bigint,
+        }
+    ) {
+        await provider.internal(via, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(Opcodes.resendAsterizmTransfer, 32)
                 .storeUint(params.transferHash, 256)
                 .storeUint(params.transferFeeValue, 128)
                 .endCell(),
@@ -265,7 +280,6 @@ export class MultichainToken implements Contract {
             payload: Cell,
         }
     ) {
-        
         await provider.internal(via, {
             value,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
@@ -276,6 +290,62 @@ export class MultichainToken implements Contract {
                 .storeUint(params.txId, 256)
                 .storeUint(params.transferHash, 256)
                 .storeRef(params.payload)
+                .endCell(),
+        });
+    }
+
+    public async sendAddRefundRequest(
+        provider: ContractProvider,
+        via: Sender,
+        value: bigint,
+        params: {
+            transferHash: bigint,
+        }
+    ) {
+        await provider.internal(via, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(Opcodes.addRefundRequest, 32)
+                .storeUint(params.transferHash, 256)
+                .endCell(),
+        });
+    }
+
+    public async sendProcessRefundRequest(
+        provider: ContractProvider,
+        via: Sender,
+        value: bigint,
+        params: {
+            transferHash: bigint,
+            status: boolean,
+        }
+    ) {
+        await provider.internal(via, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(Opcodes.processRefundRequest, 32)
+                .storeUint(params.transferHash, 256)
+                .storeBit(params.status)
+                .endCell(),
+        });
+    }
+
+    public async sendConfirmRefund(
+        provider: ContractProvider,
+        via: Sender,
+        value: bigint,
+        params: {
+            transferHash: bigint,
+        }
+    ) {
+        await provider.internal(via, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(Opcodes.confirmRefund, 32)
+                .storeUint(params.transferHash, 256)
                 .endCell(),
         });
     }
@@ -315,8 +385,8 @@ export class MultichainToken implements Contract {
         return data.tokenBalance;
     }
 
-    public async getJettonWallet(provider: ContractProvider) {
+    public async getBaseTokenWallet(provider: ContractProvider) {
         const data = await decodeAccountData(multichainTokenAbi, provider);
-        return data.jettonWallet;
+        return data.baseTokenWallet;
     }
 }

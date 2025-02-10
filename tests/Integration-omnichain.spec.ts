@@ -1,32 +1,27 @@
 import { Blockchain } from '@ton/sandbox';
 import { toNano, Address, beginCell } from '@ton/core';
 import '@ton/test-utils';
-import { JettonWallet } from '../wrappers/jettons/JettonWallet';
-
 import { integrationDeploy } from './src/IntegrationDeploy';
 
-
-describe('Integeration-jettons', () => {
-    it('Integeration deploy', async () => {
-
+describe('Integration-omnichain', () => {
+    it('failed transfer with incorrect payload', async () => {
         const blockchain = await Blockchain.create();
 
-        const { 
-            deployer, 
-            user, 
+        const {
+            deployer,
+            user,
             minter,
             mint_value,
-            userJettonWallet, 
-            multichainToken, 
-            mtJettonWallet 
+            userJettonWallet,//balance is 12
+            multichainToken,
+            mtJettonWallet
         } = await integrationDeploy(blockchain);
 
         // transfer to multichain token JettonWallet
         // it leads to crossChainTransfer call
-        const sendValue = toNano('5');
-        const forwardPayload = beginCell()
+        const sendValue = toNano('6');
+        const badForwardPayload = beginCell()
             .storeUint(11155111, 64)
-            .storeUint(BigInt("0x1234"),256)
             .endCell();
         await userJettonWallet.sendTransfer(
             user.getSender(),
@@ -36,13 +31,48 @@ describe('Integeration-jettons', () => {
             Address.parse('0:0000000000000000000000000000000000000000000000000000000000000000'),//responseAddress
             beginCell().endCell(), //customPayload: Cell,
             toNano('0.02'),//forward_ton_amount: bigint,
+            badForwardPayload
+        )
+
+        expect(BigInt(await mtJettonWallet.getJettonBalance()).toString()).toEqual('0');
+        expect(BigInt(await userJettonWallet.getJettonBalance()).toString()).toEqual(toNano('12').toString());
+        expect(BigInt(await multichainToken.getTokenBalance()).toString()).toEqual('0');
+    });
+    it('simple transfer', async () => {
+
+        const blockchain = await Blockchain.create();
+
+        const {
+            deployer,
+            user,
+            minter,
+            mint_value,
+            userJettonWallet,
+            multichainToken,
+            mtJettonWallet
+        } = await integrationDeploy(blockchain);
+
+        // transfer to multichain token JettonWallet
+        // it leads to crossChainTransfer call
+        const sendValue = toNano('6');
+        const forwardPayload = beginCell()
+            .storeUint(11155111, 64)
+            .storeUint(BigInt("0x1234"),256)
+            .endCell();
+        await userJettonWallet.sendTransfer(
+            user.getSender(),
+            toNano('0.1'),
+            sendValue,
+            multichainToken.address,
+            Address.parse('0:0000000000000000000000000000000000000000000000000000000000000000'),//responseAddress
+            beginCell().endCell(), //customPayload: Cell,
+            toNano('0.05'),//forward_ton_amount: bigint,
             forwardPayload
         )
 
-        expect(await mtJettonWallet.getJettonBalance()).toEqual(sendValue);
-        expect(await userJettonWallet.getJettonBalance()).toEqual(sendValue);
-        expect(BigInt(await multichainToken.getTokenBalance()).toString())
-        .toEqual(sendValue.toString());
+        expect(BigInt(await mtJettonWallet.getJettonBalance()).toString()).toEqual(sendValue.toString());
+        expect(BigInt(await userJettonWallet.getJettonBalance()).toString()).toEqual(sendValue.toString());
+        expect(BigInt(await multichainToken.getTokenBalance()).toString()).toEqual(sendValue.toString());
         // Send tokens back to user wallet
         // Debug Transfer is diable now
         /*await multichainToken.sendDebugTransfer(deployer.getSender(), toNano('1'), {
@@ -52,7 +82,7 @@ describe('Integeration-jettons', () => {
         expect((await mtJettonWallet.getJettonBalance()).toString()).toEqual(0n.toString());
         expect((await userJettonWallet.getJettonBalance()).toString()).toEqual(toNano('10').toString());
         expect(BigInt(await multichainToken.getTokenBalance()).toString()).toEqual('0');
-            
+
 
         // send tokens to new user address
         let newUser = await blockchain.treasury('newUser');

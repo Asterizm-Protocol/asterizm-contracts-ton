@@ -14,7 +14,7 @@
 			"name": "isExists",
 			"inputs": [
 				{"name":"answerId","type":"uint32"},
-				{"name":"_transferHash","type":"uint256"}
+				{"name":"_smallTransferHash","type":"uint128"}
 			],
 			"outputs": [
 				{"name":"value0","type":"uint256"},
@@ -26,7 +26,7 @@
 			"name": "isExecuted",
 			"inputs": [
 				{"name":"answerId","type":"uint32"},
-				{"name":"_transferHash","type":"uint256"}
+				{"name":"_smallTransferHash","type":"uint128"}
 			],
 			"outputs": [
 				{"name":"value0","type":"uint256"},
@@ -37,7 +37,7 @@
 		{
 			"name": "executeTransfer",
 			"inputs": [
-				{"name":"_transferHash","type":"uint256"}
+				{"name":"_smallTransferHash","type":"uint128"}
 			],
 			"outputs": [
 			]
@@ -50,8 +50,9 @@
 	],
 	"events": [
 		{
-			"name": "DeployContractEvent",
+			"name": "DeployClientTransferContractEvent",
 			"inputs": [
+				{"name":"_selfAddress","type":"address"}
 			],
 			"outputs": [
 			]

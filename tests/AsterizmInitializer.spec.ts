@@ -1,5 +1,5 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Cell, toNano } from '@ton/core';
+import { Cell, toNano, Address } from '@ton/core';
 import { AsterizmInitializer } from '../wrappers/AsterizmInitializer';
 import '@ton/test-utils';
 import contractCode from '../contracts/artifacts/AsterizmInitializer.code.json';
@@ -7,7 +7,7 @@ import asterizmClientTransferCode from '../contracts/artifacts/AsterizmClientTra
 import asterizmInitializerTransferCode from '../contracts/artifacts/AsterizmInitializerTransfer.code.json';
 
 
-describe.skip('AsterizmInitializer', () => {
+describe('AsterizmInitializer', () => {
     let code: Cell;
 
     beforeAll(async () => {
@@ -18,7 +18,35 @@ describe.skip('AsterizmInitializer', () => {
     let deployer: SandboxContract<TreasuryContract>;
     let tvmContract: SandboxContract<AsterizmInitializer>;
 
-    beforeEach(async () => {
+    it('should not deploy', async () => {
+        blockchain = await Blockchain.create();
+
+        deployer = await blockchain.treasury('deployer');
+        const ZeroAddress = Address.parse('0:0000000000000000000000000000000000000000000000000000000000000000');
+
+        tvmContract = blockchain.openContract(
+            await AsterizmInitializer.createFromConfig(
+                {
+                    initializerTransferCode: asterizmInitializerTransferCode.code,
+                    clientTransferCode: asterizmClientTransferCode.code,
+                    translator: deployer.address,
+                    owner: ZeroAddress,
+                },
+                code,
+            )
+        );
+
+        deployer = await blockchain.treasury('deployer');
+
+        const deployResult = await tvmContract.sendConstructor(deployer.getSender(), toNano('5'));
+        expect(deployResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: tvmContract.address,
+            exitCode: 5002,
+            success: false,
+        });
+    });
+    it('should deploy', async () => {
         blockchain = await Blockchain.create();
 
         deployer = await blockchain.treasury('deployer');
@@ -44,10 +72,5 @@ describe.skip('AsterizmInitializer', () => {
             deploy: true,
             success: true,
         });
-    });
-
-    it('should deploy', async () => {
-        // the check is done inside beforeEach
-        // blockchain and testContract are ready to use
     });
 });

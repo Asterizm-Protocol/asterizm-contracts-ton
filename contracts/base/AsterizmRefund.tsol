@@ -1,0 +1,441 @@
+pragma ton-solidity >= 0.70.0;
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+import "./AsterizmSender.tsol";
+import "./AsterizmErrors.tsol";
+import "./AsterizmRefundTransfer.tsol";
+import "./AsterizmRefundRequest.tsol";
+import "./AsterizmRefundConfirmation.tsol";
+import "./AsterizmStructs.tsol";
+import "../libs/UintLib.tsol";
+
+abstract contract AsterizmRefund is AsterizmSender, AsterizmStructs {
+
+    using UintLib for uint;
+
+    /// Add refund transfer hash event
+    /// @param _transferHash uint  Transfer hash
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address (address(0) - native coin)
+    event AddRefundTransferEvent(uint _transferHash, address _userAddress, uint _amount, address _tokenAddress);
+
+    /// Add refund transfer hash event
+    /// @param _transferHash uint  Transfer hash
+    /// @param _contractAddress address  Contract address
+    event RefundTransferContractDeployEvent(uint _transferHash, address _contractAddress);
+
+    /// Add refund request hash event
+    /// @param _transferHash uint  Transfer hash
+    /// @param _contractAddress address  Contract address
+    event RefundRequestContractDeployEvent(uint _transferHash, address _contractAddress);
+
+    /// Add refund confirmation hash event
+    /// @param _transferHash uint  Transfer hash
+    /// @param _contractAddress address  Contract address
+    event RefundConfirmationContractDeployEvent(uint _transferHash, address _contractAddress);
+
+    /// Add refund request event
+    /// @param _transferHash uint  Transfer hash
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address (address(0) - native coin)
+    event AddRefundRequestEvent(uint _transferHash, address _userAddress, uint _amount, address _tokenAddress);
+
+    /// Process refund request event
+    /// @param _transferHash uint  Transfer hash
+    /// @param _status bool  Request status (true - success, false - not success)
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address (address(0) - native coin)
+    event ProcessRefundRequestEvent(uint _transferHash, bool _status, address _userAddress, uint _amount, address _tokenAddress);
+
+    /// Confirm refund event
+    /// @param _transferHash uint  Transfer hash
+    /// @param _confirmContractAddress address  Confirm contract address
+    event ConfirmRefundEvent(uint _transferHash, address _confirmContractAddress);
+
+    /// Transfer was refunded event
+    /// @param _transferHash uint  Transfer hash
+    event TransferWasRefundedEvent(uint _transferHash);
+
+    struct ConfirmationTransfer {
+        bool exists;
+        TvmCell dto;
+    }
+
+    TvmCell static refundTransferCode_;
+    TvmCell static refundRequestCode_;
+    TvmCell static refundConfirmationCode_;
+
+    bool internal refundLogicIsAvailable;
+    uint128 public refundFee;
+
+    mapping(uint128 => ConfirmationTransfer) internal confirmationTransfers;
+
+    /// Only refund logic available modifier
+    modifier onlyRefundLogicAvailable {
+        require(refundLogicIsAvailable, AsterizmErrors.REFUND__LOGIC_IS_NOT_AVAILABLE__ERROR);
+        _;
+    }
+
+    /// Only refund transfer modifier
+    /// @param _transferHash uint  Transfer hash
+    modifier onlyRefundTransfer(uint _transferHash) {
+        require(msg.sender == _getRefundTransferContractAddress(_transferHash), AsterizmErrors.REFUND__ONLY_REFUND_TRANSFER__ERROR);
+        _;
+    }
+
+    /// Only refund request modifier
+    /// @param _transferHash uint  Transfer hash
+    modifier onlyRefundRequest(uint _transferHash) {
+        require(msg.sender == _getRefundRequestContractAddress(_transferHash), AsterizmErrors.REFUND__ONLY_REFUND_REQUEST__ERROR);
+        _;
+    }
+
+    /// Only refund confirmation modifier
+    /// @param _transferHash uint  Transfer hash
+    modifier onlyRefundConfirmation(uint _transferHash) {
+        require(msg.sender == _getRefundConfirmationContractAddress(_transferHash), AsterizmErrors.REFUND__ONLY_REFUND_CONFIRMATION__ERROR);
+        _;
+    }
+
+    /// Return is refund logic available
+    /// @return bool
+    function _getIsRefundLogicAvailable() internal view returns(bool) {
+        return refundLogicIsAvailable;
+    }
+
+    /// Return refund transfer contract state init
+    /// @param _transferHash uint  Transfer hash
+    /// @return TvmCell  Refund transfer contract state init
+    function _getRefundTransferContractStateInit(uint _transferHash) internal view  onlyRefundLogicAvailable returns(TvmCell) {
+        return tvm.buildStateInit({
+            contr: AsterizmRefundTransfer,
+            varInit: {
+                owner_: address(this),
+                hash_: _transferHash
+            },
+            pubkey: 0,
+            code: refundTransferCode_
+        });
+    }
+
+    /// Return refund transfer contract address
+    /// @param _transferHash uint  Transfer hash
+    /// @return address  Refund transfer contract address
+    function _getRefundTransferContractAddress(uint _transferHash) internal view onlyRefundLogicAvailable returns(address) {
+        return address(tvm.hash(
+            _getRefundTransferContractStateInit(_transferHash)
+        ));
+    }
+
+    /// Return refund transfer contract
+    /// @param _transferHash uint  Transfer hash
+    /// @return AsterizmRefundTransfer  Refund transfer contract
+    function _getRefundTransferContract(uint _transferHash) internal view onlyRefundLogicAvailable returns(AsterizmRefundTransfer) {
+        return AsterizmRefundTransfer(_getRefundTransferContractAddress(_transferHash));
+    }
+
+    /// Deploy refund transfer contract
+    /// @param _transferHash uint  Transfer hash
+    /// @return address  Refund transfer contract address
+    function _deployRefundTransferContract(uint _transferHash) internal view onlyRefundLogicAvailable returns(address) {
+        address contractAddress = new AsterizmRefundTransfer{
+            stateInit: _getRefundTransferContractStateInit(_transferHash),
+            value: AsterizmEnvs.REFUND__MIN_DEPLOY_CONTRACT_VALUE,
+            wid: address(this).wid,
+            flag: AsterizmTransferFlags.SENDER_PAYS_FEES
+        }();
+
+        emit RefundTransferContractDeployEvent(_transferHash, contractAddress);
+
+        return contractAddress;
+    }
+
+    /// Return refund request contract state init
+    /// @param _transferHash uint  Transfer hash
+    /// @return TvmCell  Refund request contract state init
+    function _getRefundRequestContractStateInit(uint _transferHash) internal view onlyRefundLogicAvailable returns(TvmCell) {
+        return tvm.buildStateInit({
+            contr: AsterizmRefundRequest,
+            varInit: {
+                owner_: address(this),
+                hash_: _transferHash
+            },
+            pubkey: 0,
+            code: refundRequestCode_
+        });
+    }
+
+    /// Return refund request contract address
+    /// @param _transferHash uint  Transfer hash
+    /// @return address  Refund request contract address
+    function _getRefundRequestContractAddress(uint _transferHash) internal view onlyRefundLogicAvailable returns(address) {
+        return address(tvm.hash(
+            _getRefundRequestContractStateInit(_transferHash)
+        ));
+    }
+
+    /// Return refund request contract
+    /// @param _transferHash uint  Transfer hash
+    /// @return AsterizmRefundRequest  Refund request contract
+    function _getRefundRequestContract(uint _transferHash) internal view onlyRefundLogicAvailable returns(AsterizmRefundRequest) {
+        return AsterizmRefundRequest(_getRefundRequestContractAddress(_transferHash));
+    }
+
+    /// Deploy refund request contract
+    /// @param _transferHash uint  Transfer hash
+    /// @return address  Refund request contract address
+    function _deployRefundRequestContract(uint _transferHash) internal view onlyRefundLogicAvailable returns(address) {
+        address contractAddress = new AsterizmRefundRequest{
+            stateInit: _getRefundRequestContractStateInit(_transferHash),
+            value: AsterizmEnvs.REFUND__MIN_DEPLOY_CONTRACT_VALUE,
+            wid: address(this).wid,
+            flag: AsterizmTransferFlags.SENDER_PAYS_FEES
+        }();
+
+        emit RefundRequestContractDeployEvent(_transferHash, contractAddress);
+
+        return contractAddress;
+    }
+
+    /// Return refund confirmation contract state init
+    /// @param _transferHash uint  Transfer hash
+    /// @return TvmCell  Refund confirmation contract state init
+    function _getRefundConfirmationContractStateInit(uint _transferHash) internal view onlyRefundLogicAvailable returns(TvmCell) {
+        return tvm.buildStateInit({
+            contr: AsterizmRefundConfirmation,
+            varInit: {
+                owner_: address(this),
+                hash_: _transferHash
+            },
+            pubkey: 0,
+            code: refundConfirmationCode_
+        });
+    }
+
+    /// Return refund confirmation contract address
+    /// @param _transferHash uint  Transfer hash
+    /// @return address  Refund confirmation contract address
+    function _getRefundConfirmationContractAddress(uint _transferHash) internal view onlyRefundLogicAvailable returns(address) {
+        return address(tvm.hash(
+            _getRefundConfirmationContractStateInit(_transferHash)
+        ));
+    }
+
+    /// Return refund confirmation contract
+    /// @param _transferHash uint  Transfer hash
+    /// @return AsterizmRefundConfirmation  Refund confirmation contract
+    function _getRefundConfirmationContract(uint _transferHash) internal view onlyRefundLogicAvailable returns(AsterizmRefundConfirmation) {
+        return AsterizmRefundConfirmation(_getRefundConfirmationContractAddress(_transferHash));
+    }
+
+    /// Deploy refund confirmation contract
+    /// @param _transferHash uint  Transfer hash
+    /// @return address  Refund confirmation contract address
+    function _deployRefundConfirmationContract(uint _transferHash) internal view onlyRefundLogicAvailable returns(address) {
+        address contractAddress = new AsterizmRefundConfirmation{
+            stateInit: _getRefundConfirmationContractStateInit(_transferHash),
+            value: AsterizmEnvs.REFUND__MIN_DEPLOY_CONTRACT_VALUE,
+            wid: address(this).wid,
+            flag: AsterizmTransferFlags.SENDER_PAYS_FEES
+        }();
+
+        emit RefundConfirmationContractDeployEvent(_transferHash, contractAddress);
+
+        return contractAddress;
+    }
+
+    /// Add refund transfer
+    /// @param _transferHash uint  Transfer hash
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address (address(0) - native coin)
+    function _addRefundTransfer(uint _transferHash, address _userAddress, uint _amount, address _tokenAddress) internal view onlyRefundLogicAvailable {
+        _deployRefundTransferContract(_transferHash);
+        _getRefundTransferContract(_transferHash).setData{
+            value: AsterizmEnvs.REFUND__SET_DATA_VALUE,
+            flag: AsterizmTransferFlags.SENDER_PAYS_FEES
+        }(_userAddress, _amount, _tokenAddress);
+
+        emit AddRefundTransferEvent(_transferHash, _userAddress, _amount, _tokenAddress);
+    }
+
+    /// Add refund request
+    /// @param _transferHash uint  Transfer hash
+    function addRefundRequest(uint _transferHash) external view onlyRefundLogicAvailable {
+        require(
+            msg.value > refundFee + AsterizmEnvs.REFUND__MIN_DEPLOY_CONTRACT_VALUE + AsterizmEnvs.REFUND__SET_DATA_VALUE,
+            AsterizmErrors.REFUND__TRANSFER_FEE_VALUE_IS_TOO_SMALL__ERROR
+        );
+
+        tvm.rawReserve(AsterizmEnvs.CLIENT__MIN_CONTRACT_BALANCE, 0);
+        if (refundFee > 0) {
+            owner().transfer({
+                value: refundFee,
+                flag: AsterizmTransferFlags.SENDER_PAYS_FEES,
+                bounce: false
+            });
+        }
+
+        _getRefundTransferContract(_transferHash).getData{
+            value: AsterizmEnvs.TRANSFER__GET_REQUEST_VALUE,
+            callback: onAddRefundRequestCallback,
+            bounce: true
+        }(msg.sender);
+    }
+
+    /// Add refund request callback
+    /// @param _transferHash uint  Transfer hash
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address
+    function onAddRefundRequestCallback(uint _transferHash, address _userAddress, uint _amount, address _tokenAddress, address _sender) public view onlyRefundLogicAvailable onlyRefundTransfer(_transferHash) {
+        require(_userAddress == _sender, AsterizmErrors.REFUND__WRONG_TRANSFER_SENDER__ERROR);
+        tvm.rawReserve(AsterizmEnvs.CLIENT__MIN_CONTRACT_BALANCE, 0);
+
+        _deployRefundRequestContract(_transferHash);
+        _getRefundRequestContract(_transferHash).setData{
+            value: AsterizmEnvs.TRANSFER__SET_REQUEST_VALUE,
+            flag: AsterizmTransferFlags.SENDER_PAYS_FEES
+        }(_userAddress, _amount, _tokenAddress);
+
+        emit AddRefundRequestEvent(_transferHash, _userAddress, _amount, _tokenAddress);
+
+        owner().transfer({
+            value: 0,
+            flag: AsterizmTransferFlags.ALL_NOT_RESERVED,
+            bounce: false
+        });
+    }
+
+    /// Process refund request
+    /// @param _transferHash uint  Transfer hash
+    /// @param _status bool  Request status (true - success, false - not success)
+    function processRefundRequest(uint _transferHash, bool _status) external view onlyRefundLogicAvailable onlySenderOrOwner {
+        _getRefundRequestContract(_transferHash).getData{
+            value: AsterizmEnvs.TRANSFER__GET_REQUEST_VALUE,
+            callback: onProcessRefundRequestCallback,
+            bounce: true
+        }(_status);
+    }
+
+    /// Process refund request callback
+    /// @param _transferHash uint  Transfer hash
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address
+    /// @param _isExecutedFlag bool  Is request executed flag
+    /// @param _isSuccessProcessFlag bool  Is request success process flag
+    /// @param _isRejectProcessFlag bool  Is request reject process flag
+    /// @param _status bool  Status flag
+    function onProcessRefundRequestCallback(
+        uint _transferHash, address _userAddress, uint _amount, address _tokenAddress, bool _isExecutedFlag,
+        bool _isSuccessProcessFlag, bool _isRejectProcessFlag, bool _status
+    ) public view onlyRefundLogicAvailable onlyRefundRequest(_transferHash) {
+        require(!_isExecutedFlag && !_isSuccessProcessFlag && !_isRejectProcessFlag, AsterizmErrors.REFUND__REQUEST_EXECUTED_ALREADY__ERROR);
+
+        tvm.rawReserve(AsterizmEnvs.CLIENT__MIN_CONTRACT_BALANCE, 0);
+
+        _getRefundRequestContract(_transferHash).executeRequest{
+            value: AsterizmEnvs.REFUND__EXECUTE_REQUEST_VALUE,
+            callback: onExecuteRequestCallback,
+            bounce: true
+        }(_status);
+    }
+
+    /// Process execute request callback
+    /// @param _transferHash uint  Transfer hash
+    /// @param _userAddress address  User address
+    /// @param _amount uint  Transfer amount
+    /// @param _tokenAddress address  Token address
+    /// @param _isExecutedFlag bool  Is request executed flag
+    /// @param _isSuccessProcessFlag bool  Is request success process flag
+    /// @param _isRejectProcessFlag bool  Is request reject process flag
+    /// @param _status bool  Status flag
+    function onExecuteRequestCallback(
+        uint _transferHash, address _userAddress, uint _amount, address _tokenAddress, bool _isExecutedFlag,
+        bool _isSuccessProcessFlag, bool _isRejectProcessFlag, bool _status
+    ) public onlyRefundLogicAvailable onlyRefundRequest(_transferHash) {
+        require(_isExecutedFlag, AsterizmErrors.REFUND__REQUEST_IS_NOT_EXECUTED__ERROR);
+        require(!_isRejectProcessFlag, AsterizmErrors.REFUND__REQUEST_WAS_REJECTED__ERROR);
+        tvm.rawReserve(AsterizmEnvs.CLIENT__MIN_CONTRACT_BALANCE, 0);
+        if (_status && _isSuccessProcessFlag) {
+            if (_tokenAddress == address(0)) {
+                _refundCoins(_userAddress, _amount.toUint128());
+            } else {
+                _refundTokens(_userAddress, _amount, _tokenAddress);
+            }
+        }
+
+        emit ProcessRefundRequestEvent(_transferHash, _status, _userAddress, _amount, _tokenAddress);
+
+        owner().transfer({
+            value: 0,
+            flag: AsterizmTransferFlags.ALL_NOT_RESERVED,
+            bounce: false
+        });
+    }
+
+    /// Confirm refund in destination chain
+    /// @param _transferHash uint  Transfer hash
+    function confirmRefund(uint _transferHash) external view onlyRefundLogicAvailable onlySenderOrOwner {
+        address refundTransferAddress = _deployRefundConfirmationContract(_transferHash);
+
+        emit ConfirmRefundEvent(_transferHash, refundTransferAddress);
+    }
+
+    /// Refund coins
+    /// @param _targetAddress address  Target address
+    /// @param _amount uint128  Coins amount
+    function _refundCoins(address _targetAddress, uint128 _amount) internal virtual onlyRefundLogicAvailable onlySenderOrOwner {
+        _targetAddress.transfer({
+            value: _amount,
+            flag: AsterizmTransferFlags.RECEIVER_PAYS_FEES,
+            bounce: false
+        });
+    }
+
+    /// Refund tokens
+    /// @param _targetAddress address  Target address
+    /// @param _amount uint  Coins amount
+    /// @param _tokenAddress address  Token address
+    function _refundTokens(address _targetAddress, uint _amount, address _tokenAddress) internal virtual {}
+
+    /// Base Asterizm transfer receive logic
+    /// @param _dto ClAsterizmReceiveRequestDto  Transfer DTO
+    function _baseAsterizmReceiveLogic(ClAsterizmReceiveRequestDto _dto) internal virtual onlySenderOrOwner {}
+
+    /// Check refund confirmation
+    /// @param _dto ClAsterizmReceiveRequestDto  Transfer DTO
+    function _checkRefundConfirmation(ClAsterizmReceiveRequestDto _dto) internal {
+        uint128 smallTransferHash = _dto.transferHash.toUint128(); // We need it because onBounce get only 256 bits, but first 32 bits - function name, so for params we have only 224 bits
+        confirmationTransfers[smallTransferHash] = ConfirmationTransfer(true, abi.encode(_dto));
+
+        _getRefundConfirmationContract(_dto.transferHash).isExists{
+            value: AsterizmEnvs.REFUND__GET_REQUEST_VALUE,
+            callback: onCheckRefundConfirmationCallback,
+            bounce: true
+        }(smallTransferHash);
+    }
+
+    /// Check refund confirmation callback
+    /// @param _transferHash uint  Transfer hash
+    /// @param _exists bool  Exists flag
+    function onCheckRefundConfirmationCallback(uint _transferHash, bool _exists) public onlyRefundLogicAvailable onlyRefundConfirmation(_transferHash) {
+        uint128 smallTransferHash = _transferHash.toUint128();
+        require(confirmationTransfers[smallTransferHash].exists, AsterizmErrors.REFUND__WRONG_SMALL_TRANSFER_HASH__ERROR);
+
+        ConfirmationTransfer confirmationTransfer = confirmationTransfers[smallTransferHash];
+        delete confirmationTransfers[smallTransferHash];
+        if (_exists) {
+            emit TransferWasRefundedEvent(_transferHash);
+            return;
+        }
+
+        ClAsterizmReceiveRequestDto dto = abi.decode(confirmationTransfer.dto, (ClAsterizmReceiveRequestDto));
+        _baseAsterizmReceiveLogic(dto);
+    }
+}

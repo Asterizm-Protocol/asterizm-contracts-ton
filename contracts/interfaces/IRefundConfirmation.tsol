@@ -1,0 +1,10 @@
+pragma ton-solidity >= 0.70.0;
+
+/// Refund confirmation interface
+interface IRefundConfirmation {
+
+    /// Is confirmation exists
+    /// @param _transferHash uint128  Small transfer hash
+    /// @return uint, bool
+    function isExists(uint128 _transferHash) external internalMsg view responsible returns(uint, bool);
+}

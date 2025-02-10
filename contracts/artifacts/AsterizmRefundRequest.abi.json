@@ -1,0 +1,104 @@
+{
+	"ABI version": 2,
+	"version": "2.3",
+	"header": ["time"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setData",
+			"inputs": [
+				{"name":"_userAddress","type":"address"},
+				{"name":"_amount","type":"uint256"},
+				{"name":"_tokenAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getData",
+			"inputs": [
+				{"name":"answerId","type":"uint32"},
+				{"name":"_status","type":"bool"}
+			],
+			"outputs": [
+				{"name":"value0","type":"uint256"},
+				{"name":"value1","type":"address"},
+				{"name":"value2","type":"uint256"},
+				{"name":"value3","type":"address"},
+				{"name":"value4","type":"bool"},
+				{"name":"value5","type":"bool"},
+				{"name":"value6","type":"bool"},
+				{"name":"value7","type":"bool"}
+			]
+		},
+		{
+			"name": "executeRequest",
+			"inputs": [
+				{"name":"answerId","type":"uint32"},
+				{"name":"_status","type":"bool"}
+			],
+			"outputs": [
+				{"name":"value0","type":"uint256"},
+				{"name":"value1","type":"address"},
+				{"name":"value2","type":"uint256"},
+				{"name":"value3","type":"address"},
+				{"name":"value4","type":"bool"},
+				{"name":"value5","type":"bool"},
+				{"name":"value6","type":"bool"},
+				{"name":"value7","type":"bool"}
+			]
+		}
+	],
+	"data": [
+		{"key":1,"name":"owner_","type":"address"},
+		{"key":2,"name":"hash_","type":"uint256"}
+	],
+	"events": [
+		{
+			"name": "DeployRefundRequestContractEvent",
+			"inputs": [
+				{"name":"_selfAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "SetRefundDataEvent",
+			"inputs": [
+				{"name":"_userAddress","type":"address"},
+				{"name":"_amount","type":"uint256"},
+				{"name":"_tokenAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ExecuteRefundRequestEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_status","type":"bool"}
+			],
+			"outputs": [
+			]
+		}
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"owner_","type":"address"},
+		{"name":"hash_","type":"uint256"},
+		{"name":"userAddress","type":"address"},
+		{"name":"amount","type":"uint256"},
+		{"name":"tokenAddress","type":"address"},
+		{"name":"isExecutedFlag","type":"bool"},
+		{"name":"isSuccessProcessFlag","type":"bool"},
+		{"name":"isRejectProcessFlag","type":"bool"}
+	]
+}

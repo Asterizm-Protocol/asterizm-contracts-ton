@@ -8,4 +8,12 @@ library UintLib {
     function toAddress(uint _val) internal returns(address) {
         return address(_val);
     }
+
+    /// Convert uint (uint256) to uint128
+    /// @param _val uint
+    /// @return uint128
+    function toUint128(uint _val) internal returns(uint128) {
+        uint256 truncated = _val & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+        return uint128(truncated);
+    }
 }

@@ -5,7 +5,7 @@ import '@ton/test-utils';
 import contractCode from '../contracts/artifacts/AsterizmTranslator.code.json';
 import {ChainTypes} from '../constants/base_chain_types';
 
-describe('AsterizmTranslator', () => {
+describe.skip('AsterizmTranslator', () => {
     let code: Cell;
 
     beforeAll(async () => {

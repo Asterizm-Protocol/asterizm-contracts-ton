@@ -4,7 +4,7 @@ pragma ton-solidity >= 0.70.0;
 interface IInitializerTransfer {
 
     /// Is transfer exists
-    /// @param _transferHash uint
+    /// @param _smallTransferHash uint128
     /// @return uint, bool, uint8
-    function isExists(uint _transferHash) external internalMsg view responsible returns(uint, bool, uint8);
+    function isExists(uint128 _smallTransferHash) external internalMsg view responsible returns(uint, bool, uint8);
 }

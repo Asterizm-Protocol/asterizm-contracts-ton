@@ -33,6 +33,11 @@ contract ChainMock {
         payload = abi.encode(dstAddress, value, mock);
     }
 
+    function buildTrTransferMessageRequestDto(uint64 srcChainId, uint srcAddress, uint64 dstChainId,
+            uint dstAddress, uint txId, bool b, uint transferHash) external {
+        payload = abi.encode( srcChainId, srcAddress,dstChainId, dstAddress,txId,b,transferHash);
+    }
+
     /// Set version
     /// @param _version uint8  Version
     function setVersion(uint8 _version) external {

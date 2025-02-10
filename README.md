@@ -13,11 +13,11 @@ Check [DOCS.md](./DOCS.md) or visit [Asterizm Docs](https://docs.asterizm.io/)
 
 ### Build
 
-`npx blueprint build` or `yarn blueprint build`
+`npx blueprint build` or `yarn blueprint build` or `yarn byild:all`
 
 ### Test
 
-`npx blueprint test` or `yarn blueprint test`
+`npx blueprint test` or `yarn blueprint test` or `yarn test:all`
 
 ### Deploy or run another script
 

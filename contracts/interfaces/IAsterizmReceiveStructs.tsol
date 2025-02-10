@@ -1,0 +1,23 @@
+pragma ton-solidity >= 0.70.0;
+
+interface IAsterizmReceiveStructs {
+
+    /// Client asterizm receive request DTO
+    /// @param srcChainId uint64  Source chain ID
+    /// @param srcAddress uint  Source address
+    /// @param dstChainId uint64  Destination chain ID
+    /// @param dstAddress uint  Destination address
+    /// @param nonce uint  Nonce
+    /// @param txId uint  Transaction ID
+    /// @param transferHash uint  Transfer hash
+    /// @param payload TvmCell  Transfer payload
+    struct ClAsterizmReceiveRequestDto {
+        uint64 srcChainId;
+        uint srcAddress;
+        uint64 dstChainId;
+        uint dstAddress;
+        uint txId;
+        uint transferHash;
+        TvmCell payload;
+    }
+}

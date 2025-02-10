@@ -1,0 +1,103 @@
+#include "stdlib.fc";
+
+;; op codes
+int op::set_address() asm "0x15eb8d35 PUSHINT";
+int op::grant() asm "0x30c3eaa8 PUSHINT";
+
+global int g_msg_value;
+global slice g_msg_sender;
+
+;; State variables:
+global slice g_owner;
+global slice g_wallet;
+
+() load_state_variables() impure {
+    var cs = get_data().begin_parse();
+    (g_owner, g_wallet) = (cs~load_msg_addr(), cs~load_msg_addr());
+    cs.end_parse();
+}
+
+() store_state_variables() impure {
+    set_data(
+        begin_cell()
+            .store_slice(g_owner)
+            .store_slice(g_wallet)
+            .end_cell()
+    );
+}
+
+;; Internal message to set g_wallet
+() set_wallet(slice in_msg_body, slice sender_address) impure {
+    ;; Load state variables to check if g_wallet is already initialized
+    load_state_variables();
+    throw_unless(101, equal_slices(g_owner, sender_address));  
+    ;; get new_walelt
+    slice new_wallet = in_msg_body~load_msg_addr();
+    ;; Set g_wallet and store updated state
+    g_wallet = new_wallet;
+    store_state_variables();
+}
+
+;; Grant function to transfer 100 jettons from g_wallet
+() grant(slice recipient_address) impure {
+    load_state_variables();
+    
+    ;; Construct payload to transfer 100 jettons
+    int amount = 100000000000;  ;; The amount of jettons to transfer
+
+    cell msg_body = begin_cell()
+        .store_uint(0xf8a7ea5, 32)
+        .store_uint(0, 64)
+        .store_coins(amount)
+        .store_slice(recipient_address) ;; to_owner_address
+        .store_slice(recipient_address)
+        .store_uint(0, 1)
+        .store_coins(0) ;; forward_ton_amount
+        .store_uint(0, 1)
+        .end_cell();
+
+    cell msg = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(g_wallet)
+        .store_coins(0)
+        .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(msg_body)
+    .end_cell();
+    send_raw_message(msg, 64);
+}
+
+() recv_internal(int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    if (in_msg_body.slice_empty?()) { ;; ignore empty messages
+        return ();
+    }
+
+    slice cs = in_msg_full.begin_parse();
+    int flags = cs~load_uint(4);
+    slice sender_address = cs~load_msg_addr();
+    cs~load_msg_addr(); ;; skip dst
+    cs~load_coins(); ;; skip value
+    cs~skip_bits(1); ;; skip extracurrency collection
+    cs~load_coins(); ;; skip ihr_fee
+    int fwd_fee = muldiv(cs~load_coins(), 3, 2); ;; we use message fwd_fee for estimation of forward_payload costs
+
+    int op = in_msg_body~load_uint(32);
+
+    if (op == op::set_address()) { ;; outgoing transfer
+        set_wallet(in_msg_body, sender_address);
+        return ();
+    }
+
+    if (op == op::grant()) {
+        grant(sender_address);
+        return ();
+    } 
+}
+
+(slice, slice) get_state_variables() method_id {
+    load_state_variables();
+    return (
+        g_owner,
+        g_wallet
+    );
+}
+

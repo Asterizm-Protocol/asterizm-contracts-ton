@@ -44,7 +44,7 @@ export async function integrationDeploy(blockchain: Blockchain) {
 
     // Mint tokens to user
     const user = await blockchain.treasury('user');
-    const mint_value = toNano('10');
+    const mint_value = toNano('12');
 
     await minter.sendMint(deployer.getSender(),
         user.address,
@@ -128,7 +128,7 @@ export async function integrationDeploy(blockchain: Blockchain) {
                 initializerLib: initializer.address,
                 notifyTransferSendingResult: false,
                 disableHashValidation: false,
-                hashVersion: 1,
+                hashVersion: 1
             },
             Cell.fromBase64(MultichainTokenCode.code),
         )
@@ -180,10 +180,10 @@ export async function integrationDeploy(blockchain: Blockchain) {
 
     // get multichain token jetton wallet address
     const mtJettonWalletAddress = await minter.getWalletAddress(multichainToken.address);
-    await multichainToken.sendSetJettonWallet(deployer.getSender(), toNano('0.01'), {
+    await multichainToken.sendSetBaseTokenWallet(deployer.getSender(), toNano('0.01'), {
         wallet: mtJettonWalletAddress,
     });
-    expect(await multichainToken.getJettonWallet()).toEqual(mtJettonWalletAddress.toRawString());
+    expect(await multichainToken.getBaseTokenWallet()).toEqual(mtJettonWalletAddress.toRawString());
     // get multichain token jetton wallet
     const mtJettonWallet = blockchain.openContract(
         await JettonWallet.createFromAddress(

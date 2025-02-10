@@ -11,9 +11,40 @@
 			]
 		},
 		{
-			"name": "setJettonWallet",
+			"name": "setBaseTokenWallet",
 			"inputs": [
-				{"name":"_jettonWallet","type":"address"}
+				{"name":"_baseTokenAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "initialize",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onUpdateInitializerTransferCodeCallback",
+			"inputs": [
+				{"name":"_code","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onUpdateClientTransferCodeCallback",
+			"inputs": [
+				{"name":"_code","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onUpdateLocalChainIdCallback",
+			"inputs": [
+				{"name":"_localChainId","type":"uint64"}
 			],
 			"outputs": [
 			]
@@ -32,22 +63,6 @@
 			],
 			"outputs": [
 				{"name":"value0","type":"address"}
-			]
-		},
-		{
-			"name": "addSender",
-			"inputs": [
-				{"name":"_sender","type":"address"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "removeSender",
-			"inputs": [
-				{"name":"_sender","type":"address"}
-			],
-			"outputs": [
 			]
 		},
 		{
@@ -194,34 +209,103 @@
 			]
 		},
 		{
-			"name": "initialize",
+			"name": "addRefundRequest",
 			"inputs": [
+				{"name":"_transferHash","type":"uint256"}
 			],
 			"outputs": [
 			]
 		},
 		{
-			"name": "onUpdateInitializerTransferCodeCallback",
+			"name": "onAddRefundRequestCallback",
 			"inputs": [
-				{"name":"_code","type":"cell"}
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_userAddress","type":"address"},
+				{"name":"_amount","type":"uint256"},
+				{"name":"_tokenAddress","type":"address"},
+				{"name":"_sender","type":"address"}
 			],
 			"outputs": [
 			]
 		},
 		{
-			"name": "onUpdateClientTransferCodeCallback",
+			"name": "processRefundRequest",
 			"inputs": [
-				{"name":"_code","type":"cell"}
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_status","type":"bool"}
 			],
 			"outputs": [
 			]
 		},
 		{
-			"name": "onUpdateLocalChainIdCallback",
+			"name": "onProcessRefundRequestCallback",
 			"inputs": [
-				{"name":"_localChainId","type":"uint64"}
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_userAddress","type":"address"},
+				{"name":"_amount","type":"uint256"},
+				{"name":"_tokenAddress","type":"address"},
+				{"name":"_isExecutedFlag","type":"bool"},
+				{"name":"_isSuccessProcessFlag","type":"bool"},
+				{"name":"_isRejectProcessFlag","type":"bool"},
+				{"name":"_status","type":"bool"}
 			],
 			"outputs": [
+			]
+		},
+		{
+			"name": "onExecuteRequestCallback",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_userAddress","type":"address"},
+				{"name":"_amount","type":"uint256"},
+				{"name":"_tokenAddress","type":"address"},
+				{"name":"_isExecutedFlag","type":"bool"},
+				{"name":"_isSuccessProcessFlag","type":"bool"},
+				{"name":"_isRejectProcessFlag","type":"bool"},
+				{"name":"_status","type":"bool"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "confirmRefund",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onCheckRefundConfirmationCallback",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_exists","type":"bool"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "addSender",
+			"inputs": [
+				{"name":"_sender","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "removeSender",
+			"inputs": [
+				{"name":"_sender","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "refundFee",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"refundFee","type":"uint128"}
 			]
 		},
 		{
@@ -233,20 +317,23 @@
 			]
 		},
 		{
-			"name": "jettonWallet",
+			"name": "baseTokenWallet",
 			"inputs": [
 			],
 			"outputs": [
-				{"name":"jettonWallet","type":"address"}
+				{"name":"baseTokenWallet","type":"address"}
 			]
 		}
 	],
 	"data": [
 		{"key":1,"name":"owner_","type":"address"},
-		{"key":2,"name":"initializerLib_","type":"address"},
-		{"key":3,"name":"notifyTransferSendingResult_","type":"bool"},
-		{"key":4,"name":"disableHashValidation_","type":"bool"},
-		{"key":5,"name":"hashVersion_","type":"uint8"}
+		{"key":2,"name":"refundTransferCode_","type":"cell"},
+		{"key":3,"name":"refundRequestCode_","type":"cell"},
+		{"key":4,"name":"refundConfirmationCode_","type":"cell"},
+		{"key":5,"name":"initializerLib_","type":"address"},
+		{"key":6,"name":"notifyTransferSendingResult_","type":"bool"},
+		{"key":7,"name":"disableHashValidation_","type":"bool"},
+		{"key":8,"name":"hashVersion_","type":"uint8"}
 	],
 	"events": [
 		{
@@ -292,22 +379,6 @@
 				{"name":"_srcAddress","type":"uint256"},
 				{"name":"_txId","type":"uint256"},
 				{"name":"_transferHash","type":"uint256"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "AddSenderEvent",
-			"inputs": [
-				{"name":"_sender","type":"address"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "RemoveSenderEvent",
-			"inputs": [
-				{"name":"_sender","type":"address"}
 			],
 			"outputs": [
 			]
@@ -412,6 +483,100 @@
 			],
 			"outputs": [
 			]
+		},
+		{
+			"name": "AddRefundTransferEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_userAddress","type":"address"},
+				{"name":"_amount","type":"uint256"},
+				{"name":"_tokenAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "RefundTransferContractDeployEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_contractAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "RefundRequestContractDeployEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_contractAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "RefundConfirmationContractDeployEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_contractAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "AddRefundRequestEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_userAddress","type":"address"},
+				{"name":"_amount","type":"uint256"},
+				{"name":"_tokenAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ProcessRefundRequestEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_status","type":"bool"},
+				{"name":"_userAddress","type":"address"},
+				{"name":"_amount","type":"uint256"},
+				{"name":"_tokenAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ConfirmRefundEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
+				{"name":"_confirmContractAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "TransferWasRefundedEvent",
+			"inputs": [
+				{"name":"_transferHash","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "AddSenderEvent",
+			"inputs": [
+				{"name":"_sender","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "RemoveSenderEvent",
+			"inputs": [
+				{"name":"_sender","type":"address"}
+			],
+			"outputs": [
+			]
 		}
 	],
 	"fields": [
@@ -419,11 +584,17 @@
 		{"name":"_timestamp","type":"uint64"},
 		{"name":"_constructorFlag","type":"bool"},
 		{"name":"owner_","type":"address"},
+		{"components":[{"name":"exists","type":"bool"}],"name":"senders","type":"map(address,tuple)"},
+		{"name":"refundTransferCode_","type":"cell"},
+		{"name":"refundRequestCode_","type":"cell"},
+		{"name":"refundConfirmationCode_","type":"cell"},
+		{"name":"refundLogicIsAvailable","type":"bool"},
+		{"name":"refundFee","type":"uint128"},
+		{"components":[{"name":"exists","type":"bool"},{"name":"dto","type":"cell"}],"name":"confirmationTransfers","type":"map(uint128,tuple)"},
 		{"name":"trustedAddresses","type":"map(uint64,uint256)"},
 		{"components":[{"name":"exists","type":"bool"},{"name":"chainType","type":"uint8"}],"name":"chains","type":"map(uint64,tuple)"},
-		{"components":[{"name":"exists","type":"bool"},{"name":"successIzReceive","type":"bool"},{"name":"successClReceive","type":"bool"},{"name":"successClExecute","type":"bool"},{"name":"msgValue","type":"uint128"},{"name":"dto","type":"cell"}],"name":"inboundTransfers","type":"map(uint256,tuple)"},
-		{"components":[{"name":"exists","type":"bool"},{"name":"successIzReceive","type":"bool"},{"name":"successClReceive","type":"bool"},{"name":"successClExecute","type":"bool"},{"name":"msgValue","type":"uint128"},{"name":"dto","type":"cell"}],"name":"outboundTransfers","type":"map(uint256,tuple)"},
-		{"components":[{"name":"exists","type":"bool"}],"name":"senders","type":"map(address,tuple)"},
+		{"components":[{"name":"exists","type":"bool"},{"name":"transferHash","type":"uint256"},{"name":"successIzReceive","type":"bool"},{"name":"successClReceive","type":"bool"},{"name":"successClExecute","type":"bool"},{"name":"msgValue","type":"uint128"},{"name":"dto","type":"cell"}],"name":"inboundTransfers","type":"map(uint128,tuple)"},
+		{"components":[{"name":"exists","type":"bool"},{"name":"transferHash","type":"uint256"},{"name":"successIzReceive","type":"bool"},{"name":"successClReceive","type":"bool"},{"name":"successClExecute","type":"bool"},{"name":"msgValue","type":"uint128"},{"name":"dto","type":"cell"}],"name":"outboundTransfers","type":"map(uint128,tuple)"},
 		{"name":"trustedAddressCount","type":"uint256"},
 		{"name":"txId","type":"uint256"},
 		{"name":"localChainId","type":"uint64"},
@@ -435,6 +606,6 @@
 		{"name":"disableHashValidation_","type":"bool"},
 		{"name":"hashVersion_","type":"uint8"},
 		{"name":"tokenBalance","type":"uint256"},
-		{"name":"jettonWallet","type":"address"}
+		{"name":"baseTokenWallet","type":"address"}
 	]
 }

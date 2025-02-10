@@ -15,7 +15,8 @@ export async function run(provider: NetworkProvider) {
             Address.parse(mtContractAddress.multichainToken)
         ),
     );
-
+    //0:d63659b27081e7af87bb23bcb03c45b95a9d06fe089c15c0dfd5e365dde32183
+    ui.write('0:d63659b27081e7af87bb23bcb03c45b95a9d06fe089c15c0dfd5e365dde32183');
     const senderAddress = await ui.inputAddress('MultichainToken new Sender address:');
 
     await multichainToken.sendAddSender(sender, toNano('0.1'), {

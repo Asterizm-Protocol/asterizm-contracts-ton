@@ -1341,5 +1341,116 @@ export const Chains = {
                 asterizmRouter: '0x0000000000000000000000000000000000000000',
             },
         },
+        {
+            id: 40001,
+            title: "TON", // Ton testnet
+            networkName: "tonTestnet",
+            chainType: ChainTypes.TON,
+            contractAddresses: {
+                translator: {
+                    address: 'EQDIwbxNE9vu8wiQ2IyDO49HmC9iG2HTYD91W1qlKDjSP9hr',
+                    uint: '90804870806476004739881921205513112618921191123935732807134167735293267464767',
+                },
+                initializer: {
+                    address: 'EQCvYJFYeJH27ANH-vtbJ8-lnHHrDEDdzB2b3v1wwle8CE48',
+                    uint: '79325368958683455530642312087680413228497002260828543716100925530151293795336',
+                },
+            },
+            trustAddresses: {
+                gas: {
+                    address: '0x0000000000000000000000000000000000000000',
+                    uint: '0',
+                },
+                multichain: {
+                    address: 'EQC3Z-KVt6_jiREi_Kjgw_Vja0OLb-r-eaF60SyzLMahuc1g',
+                    uint: '82956800369460856566174632957770929749457176919168498373121963061566857716153',
+                },
+                checker: {
+                    address: '0x0000000000000000000000000000000000000000',
+                    uint: '0',
+                },
+            },
+            stableCoins: [],
+            chainlink: {
+                chainSelector: '0',
+                feeToken: '0x0000000000000000000000000000000000000000',
+                baseRouter: '0x0000000000000000000000000000000000000000',
+                asterizmRouter: '0x0000000000000000000000000000000000000000',
+            },
+        },
+        {
+            id: 1005,
+            title: "LMN", // Lemon
+            networkName: "lemonTestnet",
+            chainType: ChainTypes.EVM,
+            contractAddresses: {
+                translator: {
+                    address: '0x83d13986BD486673246C3e4d90B2f94015A57a52',
+                    uint: '752543657974151170156389962503478499403417090642',
+                },
+                initializer: {
+                    address: '0x368249858eCBf9B7af5e5B18731f5d1769071BBB',
+                    uint: '311191003144533610836569876219409758032482474939',
+                },
+            },
+            trustAddresses: {
+                gas: {
+                    address: '0x0000000000000000000000000000000000000000',
+                    uint: '0',
+                },
+                multichain: {
+                    address: '0x0000000000000000000000000000000000000000',
+                    uint: '0',
+                },
+                checker: {
+                    address: '0x0000000000000000000000000000000000000000',
+                    uint: '0',
+                },
+            },
+            stableCoins: [],
+            chainlink: {
+                chainSelector: '0',
+                feeToken: '0x0000000000000000000000000000000000000000',
+                baseRouter: '0x0000000000000000000000000000000000000000',
+                asterizmRouter: '0x0000000000000000000000000000000000000000',
+            },
+        },
+        {
+            id: 4157,
+            title: "XFI", // CrossFi
+            networkName: "crossfiTestnet",
+            chainType: ChainTypes.EVM,
+            contractAddresses: {
+                translator: {
+                    address: '0x0000000000000000000000000000000000000000',
+                    uint: '0',
+                },
+                initializer: {
+                    address: '0x0000000000000000000000000000000000000000',
+                    uint: '0',
+                },
+            },
+            trustAddresses: {
+                gas: {
+                    address: '0x0000000000000000000000000000000000000000',
+                    uint: '0',
+                },
+                multichain: {
+                    address: '0x0000000000000000000000000000000000000000',
+                    uint: '0',
+                },
+                checker: {
+                    address: '0x0000000000000000000000000000000000000000',
+                    uint: '0',
+                },
+            },
+            stableCoins: [],
+            chainlink: {
+                chainSelector: '0',
+                feeToken: '0x0000000000000000000000000000000000000000',
+                baseRouter: '0x0000000000000000000000000000000000000000',
+                asterizmRouter: '0x0000000000000000000000000000000000000000',
+            },
+        },
     ],
 };

@@ -1,0 +1,123 @@
+pragma ton-solidity >= 0.70.0;
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+import "../../base/AsterizmClient.tsol";
+import "../../base/AsterizmErrors.tsol";
+import "../../base/AsterizmEnvs.tsol";
+
+contract MultichainToken is AsterizmClient {
+
+    uint public tokenBalance;
+    address public baseTokenWallet;
+
+    /// Constructor
+    constructor() AsterizmClient() {
+        refundLogicIsAvailable = true;
+    }
+
+    /// Set base token wallet address
+    /// @param _baseTokenAddress address  Base token wallet address
+    function setBaseTokenWallet(address _baseTokenAddress) public onlyOwner {
+        tvm.rawReserve(AsterizmEnvs.MULTICHAIN__MIN_CONTRACT_BALANCE, 0);
+        baseTokenWallet = _baseTokenAddress;
+    }
+
+    /// Cross-chain transfer
+    /// @param _dstChainId uint64  Destination chain ID
+    /// @param _from address  From address
+    /// @param _to uint  To address
+    /// @param _amount uint  Token amount
+    function crossChainTransfer(uint64 _dstChainId, address _from, uint256 _to, uint _amount) internal {
+        require(_amount > 0, AsterizmErrors.CLIENT__ZERO_AMOUNT__ERROR);
+        tokenBalance += _amount;
+        uint transferHash = _initAsterizmTransferEvent(_dstChainId, abi.encode(_to, _amount, _getTxId()));
+        _addRefundTransfer(transferHash, _from, _amount, baseTokenWallet);
+    }
+
+    /// Receive non-encoded payload
+    /// @param _dto ClAsterizmReceiveRequestDto  Method DTO
+    function _asterizmReceive(ClAsterizmReceiveRequestDto _dto) internal override returns(uint16) {
+        (uint dst, uint amount, ) = abi.decode(_dto.payload, (uint, uint, uint));
+        require(tokenBalance >= amount, AsterizmErrors.CLIENT__NOT_ENOUGH_TOKENS__ERROR);
+        sendBaseToken(address(dst), amount, true);
+
+        return 0;
+    }
+
+    /// Build base token transfer body
+    /// @param _to address  Target address
+    /// @param _amount uint  Transfer amount
+    function buildBaseTokenTransferBody(address _to, uint _amount) internal pure returns(TvmCell) {
+        uint128 fwdAmmount = 0;
+        TvmBuilder body;
+        body.storeUint(0xf8a7ea5, 32); // op::transfer()
+        body.storeUint(0, 64); // query id
+        // store coins
+        body.storeUint(15, 4); // amount byte length
+        body.storeUint(_amount, 120); // amount
+        body.store(_to); // to address
+        // response address
+        // store address None https://github.com/ton-blockchain/token-contract/blob/21e7844fa6dbed34e0f4c70eb5f0824409640a30/ft/jetton-wallet.fc#L149
+        body.storeZeroes(2); // response address None
+        body.storeZeroes(1); // null custom_payload
+        // frward ammount
+        body.storeUint(1, 4);
+        body.storeUint(fwdAmmount, 8);
+        body.storeZeroes(1);// false Either for empty payload
+
+       return body.toCell();
+    }
+
+    /// Send base token
+    /// @param _to address  Target address
+    /// @param _amount uint  Token amount
+    /// @param _withBaseTokenSub bool  Sub base tokens
+    function sendBaseToken(address _to, uint _amount, bool _withBaseTokenSub) internal  {
+        if (_withBaseTokenSub) {
+            tokenBalance -= _amount;
+        }
+
+        TvmCell body = buildBaseTokenTransferBody(_to, _amount);
+        baseTokenWallet.transfer({value: 41500000, body: body});
+    }
+
+    fallback() external {
+        TvmSlice body = msg.data;
+        uint32 functionId = uint32(body.loadUint(32));
+        if (msg.sender == baseTokenWallet && functionId == 0x7362d09c) { // transfer_notification
+            uint64 queryId = uint64(body.loadUint(64));
+            // load coins
+            //byte len
+            uint8 len = uint8(body.loadUint(4)) * 8;
+            uint128 tokenAmount = uint128(body.loadUint(len));
+            // load sender address
+            address sender = body.load(address);
+            // load payload from ref
+            if (body.refs() == 1) {
+                TvmSlice ref = body.loadRef().toSlice();
+                if (ref.bits() == 320) {
+                    // chainId
+                    uint64 chainId = uint64(ref.loadUint(64));
+                    // load target address
+                    uint256 target = ref.load(uint256);
+                    // call logic
+                    crossChainTransfer(chainId, sender, target, tokenAmount);
+                } else {
+                    sendBaseToken(sender, tokenAmount, false);
+                }
+            } else {
+                sendBaseToken(sender, tokenAmount, false);
+            }
+        }
+    }
+
+    /// Refund tokens
+    /// @param _targetAddress address  Target address
+    /// @param _amount uint  Coins amount
+    /// @param _tokenAddress address  Token address
+    function _refundTokens(address _targetAddress, uint _amount, address _tokenAddress) internal override {
+        require(_tokenAddress == baseTokenWallet, AsterizmErrors.CLIENT__WRONG_TOKEN__ERROR);
+        sendBaseToken(_targetAddress, _amount, true);
+    }
+}

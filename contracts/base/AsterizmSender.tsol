@@ -1,0 +1,55 @@
+pragma ton-solidity >= 0.70.0;
+
+import "./AsterizmErrors.tsol";
+import "./AsterizmOwnable.tsol";
+
+abstract contract AsterizmSender is AsterizmOwnable {
+
+    /// Add sender event
+    /// @param _sender address  Sender address
+    event AddSenderEvent(address _sender);
+
+    /// Remove sender event
+    /// @param _sender address  Sender address
+    event RemoveSenderEvent(address _sender);
+
+    struct Sender {
+        bool exists;
+    }
+
+    mapping(address => Sender) internal senders;
+
+    /// Only sender modifier
+    modifier onlySender {
+        require(senders[msg.sender].exists, AsterizmErrors.CLIENT__ONLY_SENDER__ERROR);
+        _;
+    }
+
+    /// Only sender or owner modifier
+    modifier onlySenderOrOwner {
+        require(msg.sender == owner() || senders[msg.sender].exists, AsterizmErrors.CLIENT__ONLY_OWNER_OR_SENDER__ERROR);
+        _;
+    }
+
+
+    /// Add sender
+    /// @param _sender address  Sender address
+    function addSender(address _sender) public onlyOwner {
+        _addSenderPrivate(_sender);
+    }
+
+    /// Add sender private method
+    /// @param _sender address  Sender address
+    function _addSenderPrivate(address _sender) internal {
+        senders[_sender].exists = true;
+        emit AddSenderEvent(_sender);
+    }
+
+    /// Remove sender
+    /// @param _sender address  Sender address
+    function removeSender(address _sender) public onlyOwner {
+        require(senders[_sender].exists, AsterizmErrors.CLIENT__SENDER_NOT_EXISTS__ERROR);
+        delete senders[_sender];
+        emit RemoveSenderEvent(_sender);
+    }
+}

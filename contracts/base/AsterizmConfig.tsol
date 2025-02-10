@@ -41,6 +41,10 @@ abstract contract AsterizmConfig is AsterizmOwnable, IConfig {
         _;
     }
 
+    constructor() {
+        require(owner_.value != 0, AsterizmErrors.TRANSFER__WRONG_WALLET_OWNER__ERROR);
+    }
+
     /// Managing trusted relay
     /// @param _relayAddress address  Relay address
     /// @param _fee uint128  Relay fee

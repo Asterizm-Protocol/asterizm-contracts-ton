@@ -14,7 +14,7 @@
 			"name": "addBlockAddress",
 			"inputs": [
 				{"name":"_chainId","type":"uint64"},
-				{"name":"_address","type":"uint256"}
+				{"name":"_address","type":"address"}
 			],
 			"outputs": [
 			]
@@ -22,7 +22,8 @@
 		{
 			"name": "removeBlockAddress",
 			"inputs": [
-				{"name":"_chainId","type":"uint64"}
+				{"name":"_chainId","type":"uint64"},
+				{"name":"_address","type":"address"}
 			],
 			"outputs": [
 			]
@@ -169,7 +170,7 @@
 			"inputs": [
 			],
 			"outputs": [
-				{"name":"blockAddresses","type":"map(uint64,uint256)"}
+				{"name":"blockAddresses","type":"map(uint64,map(uint256,bool))"}
 			]
 		}
 	],
@@ -189,25 +190,9 @@
 			]
 		},
 		{
-			"name": "SetDecriptionSendAvailableEvent",
-			"inputs": [
-				{"name":"_flag","type":"bool"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "SetEncriptionSendAvailableEvent",
-			"inputs": [
-				{"name":"_flag","type":"bool"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "AddBlockAddressEvent",
 			"inputs": [
-				{"name":"_cheinId","type":"uint64"},
+				{"name":"_chainId","type":"uint64"},
 				{"name":"_address","type":"uint256"}
 			],
 			"outputs": [
@@ -216,7 +201,7 @@
 		{
 			"name": "RemoveBlockAddressEvent",
 			"inputs": [
-				{"name":"_cheinId","type":"uint64"},
+				{"name":"_chainId","type":"uint64"},
 				{"name":"_address","type":"uint256"}
 			],
 			"outputs": [
@@ -225,14 +210,7 @@
 		{
 			"name": "TransferHashContractDeployEvent",
 			"inputs": [
-				{"name":"_address","type":"address"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "NonceContractDeployEvent",
-			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
 				{"name":"_address","type":"address"}
 			],
 			"outputs": [
@@ -247,32 +225,8 @@
 			]
 		},
 		{
-			"name": "NonceErrorEvent",
-			"inputs": [
-				{"name":"_transferHash","type":"uint256"},
-				{"name":"_errorCode","type":"uint16"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "UpdateChainsListEvent",
 			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "PayloadErrorEvent",
-			"inputs": [
-				{"name":"_srcChainId","type":"uint64"},
-				{"name":"_srcAddress","type":"address"},
-				{"name":"_dstChainId","type":"uint64"},
-				{"name":"_dstAddress","type":"address"},
-				{"name":"_nonce","type":"uint256"},
-				{"name":"_transferHash","type":"uint256"},
-				{"name":"_payload","type":"cell"},
-				{"name":"_reason","type":"cell"}
 			],
 			"outputs": [
 			]
@@ -282,6 +236,14 @@
 			"inputs": [
 				{"name":"_transferHash","type":"uint256"},
 				{"name":"_dstAddress","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "TransferErrorEvent",
+			"inputs": [
+				{"name":"_errorCode","type":"uint16"}
 			],
 			"outputs": [
 			]
@@ -321,7 +283,7 @@
 		{"name":"owner_","type":"address"},
 		{"components":[{"name":"exists","type":"bool"},{"name":"fee","type":"uint128"},{"name":"systemFee","type":"uint128"}],"name":"trustedRelays","type":"map(address,tuple)"},
 		{"name":"localChainId","type":"uint64"},
-		{"name":"blockAddresses","type":"map(uint64,uint256)"},
+		{"name":"blockAddresses","type":"map(uint64,map(uint256,bool))"},
 		{"components":[{"name":"exists","type":"bool"},{"name":"chainType","type":"uint8"}],"name":"chains","type":"map(uint64,tuple)"},
 		{"name":"translatorLib_","type":"address"},
 		{"name":"initializerTransferCode_","type":"cell"},

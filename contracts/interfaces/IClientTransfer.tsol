@@ -6,11 +6,11 @@ import "../interfaces/IInitializerTransfer.tsol";
 interface IClientTransfer is IInitializerTransfer {
 
     /// Is transfer executed
-    /// @param _transferHash uint
+    /// @param _smallTransferHash uint128
     /// @return uint, bool, uint8
-    function isExecuted(uint _transferHash) external internalMsg view responsible returns(uint, bool, uint8);
+    function isExecuted(uint128 _smallTransferHash) external internalMsg view responsible returns(uint, bool, uint8);
 
     /// Execute transfer
-    /// @param _transferHash uint
-    function executeTransfer(uint _transferHash) external internalMsg;
+    /// @param _smallTransferHash uint128
+    function executeTransfer(uint128 _smallTransferHash) external internalMsg;
 }

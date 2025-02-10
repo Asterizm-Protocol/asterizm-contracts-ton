@@ -89,6 +89,36 @@ export class ChainMock implements Contract {
         });
     }
 
+    public async  sendBuildTrTransferMessageRequestDto(
+        provider: ContractProvider,
+        via: Sender,
+        value: bigint,
+        params:{
+            srcChainId: bigint,
+            srcAddress: bigint,
+            dstChainId: bigint,
+            dstAddress: bigint,
+            txId: bigint,
+            b: boolean,
+            transferHash: bigint    
+        }) {
+        let bodyBase64 = await encodeMessageBody(chainMockAbi, 'buildTrTransferMessageRequestDto', {
+            srcChainId : params.srcChainId,
+            srcAddress : params.srcAddress,
+            dstChainId : params.dstChainId,
+            dstAddress : params.dstAddress,
+            txId : params.txId,
+            b : params.b,
+            transferHash : params.transferHash
+        });
+        await provider.internal(via, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: Cell.fromBase64(bodyBase64),
+        });
+    }
+
+
     public async getDataEx(provider: ContractProvider, params: {
         _srcChainId: bigint, 
         _srcAddress: bigint, 

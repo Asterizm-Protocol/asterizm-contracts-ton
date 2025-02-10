@@ -14,7 +14,7 @@
 			"name": "isExists",
 			"inputs": [
 				{"name":"answerId","type":"uint32"},
-				{"name":"_transferHash","type":"uint256"}
+				{"name":"_smallTransferHash","type":"uint128"}
 			],
 			"outputs": [
 				{"name":"value0","type":"uint256"},
@@ -29,8 +29,9 @@
 	],
 	"events": [
 		{
-			"name": "DeployContractEvent",
+			"name": "DeployInitializerTransferContractEvent",
 			"inputs": [
+				{"name":"_selfAddress","type":"address"}
 			],
 			"outputs": [
 			]

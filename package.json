@@ -5,15 +5,18 @@
     "scripts": {
         "start": "blueprint run",
         "build": "blueprint build",
+        "test:all": "yarn build:all && jest --verbose",
         "test": "jest --verbose",
-        "build:all": "yarn build:1 && yarn build:2 && yarn build:3 && yarn build:4 && yarn build:5 && yarn build:6",
+        "build:all": "yarn build:1 && yarn build:2 && yarn build:3 && yarn build:4 && yarn build:5 && yarn build:6 && yarn build:7 && yarn build:8 && yarn build:9",
         "build:1":"./scripts/buildTvmContract.sh AsterizmTranslator",
         "build:2":"./scripts/buildTvmContract.sh base/AsterizmClientTransfer",
         "build:3":"./scripts/buildTvmContract.sh base/AsterizmInitializerTransfer",
         "build:4":"./scripts/buildTvmContract.sh AsterizmInitializer",
-        "build:5":"./scripts/buildTvmContract.sh MultichainToken",
+        "build:5":"./scripts/buildTvmContract.sh projects/omnichain/MultichainToken",
         "build:6":"./scripts/buildTvmContract.sh ChainMock",
-        
+        "build:7":"./scripts/buildTvmContract.sh base/AsterizmRefundTransfer",
+        "build:8":"./scripts/buildTvmContract.sh base/AsterizmRefundRequest",
+        "build:9":"./scripts/buildTvmContract.sh base/AsterizmRefundConfirmation",
         "build:contract":"./scripts/buildTvmContract.sh"
     },
     "devDependencies": {
