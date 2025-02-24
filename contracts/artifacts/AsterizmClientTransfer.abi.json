@@ -11,6 +11,13 @@
 			]
 		},
 		{
+			"name": "initialize",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "isExists",
 			"inputs": [
 				{"name":"answerId","type":"uint32"},
@@ -72,6 +79,7 @@
 		{"name":"owner_","type":"address"},
 		{"name":"hash_","type":"uint256"},
 		{"name":"type_","type":"bool"},
+		{"name":"isInitialized","type":"bool"},
 		{"name":"isExecutedFlag","type":"bool"}
 	]
 }

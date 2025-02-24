@@ -22,6 +22,7 @@ contract AsterizmClientTransfer is IClientTransfer, AsterizmOwnable {
     /// Transfer type (true - inbound, false - outbound)
     bool static type_;
 
+    bool private isInitialized;
     bool private isExecutedFlag;
 
     constructor() {
@@ -35,10 +36,21 @@ contract AsterizmClientTransfer is IClientTransfer, AsterizmOwnable {
         owner_.transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
     }
 
+    /// Only initialized modifier
+    modifier onlyInitialized {
+        require(isInitialized, AsterizmErrors.TRANSFER__NOT_INITIALISED__ERROR);
+        _;
+    }
+
+    // Initialize contract after deploy
+    function initialize() external onlyOwner {
+        isInitialized = true;
+    }
+
     /// Is transfer exists
     /// @param _smallTransferHash uint128
     /// @return uint, bool, uint8
-    function isExists(uint128 _smallTransferHash) external internalMsg view responsible override onlyOwner returns(uint, bool, uint8) {
+    function isExists(uint128 _smallTransferHash) external internalMsg view responsible override onlyOwner onlyInitialized returns(uint, bool, uint8) {
         uint baseHash = hash_;
         require(baseHash.toUint128() == _smallTransferHash, AsterizmErrors.TRANSFER__WRONG_HASH__ERROR);
         return { value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false } (hash_, true, AsterizmEnvs.METHOD__CLIENT_HASH_EXISTS);
@@ -47,7 +59,7 @@ contract AsterizmClientTransfer is IClientTransfer, AsterizmOwnable {
     /// Is transfer executed
     /// @param _smallTransferHash uint128
     /// @return uint, bool, uint8
-    function isExecuted(uint128 _smallTransferHash) external internalMsg view responsible override onlyOwner returns(uint, bool, uint8) {
+    function isExecuted(uint128 _smallTransferHash) external internalMsg view responsible override onlyOwner onlyInitialized returns(uint, bool, uint8) {
         uint baseHash = hash_;
         require(baseHash.toUint128() == _smallTransferHash, AsterizmErrors.TRANSFER__WRONG_HASH__ERROR);
         return { value: 0, flag: AsterizmTransferFlags.REMAINING_GAS, bounce: false } (hash_, isExecutedFlag, AsterizmEnvs.METHOD__CLIENT_HASH_EXECUTED);
@@ -55,7 +67,7 @@ contract AsterizmClientTransfer is IClientTransfer, AsterizmOwnable {
 
     /// Execute transfer
     /// @param _smallTransferHash uint128
-    function executeTransfer(uint128 _smallTransferHash) external internalMsg override onlyOwner {
+    function executeTransfer(uint128 _smallTransferHash) external internalMsg override onlyOwner onlyInitialized {
         uint baseHash = hash_;
         require(baseHash.toUint128() == _smallTransferHash, AsterizmErrors.TRANSFER__WRONG_HASH__ERROR);
         tvm.rawReserve(AsterizmEnvs.TRANSFER__MIN_CONTRACT_BALANCE, 0);

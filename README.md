@@ -13,7 +13,7 @@ Check [DOCS.md](./DOCS.md) or visit [Asterizm Docs](https://docs.asterizm.io/)
 
 ### Build
 
-`npx blueprint build` or `yarn blueprint build` or `yarn byild:all`
+`npx blueprint build` or `yarn blueprint build` or `yarn build:all`
 
 ### Test
 

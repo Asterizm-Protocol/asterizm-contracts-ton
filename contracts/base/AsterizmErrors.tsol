@@ -71,6 +71,7 @@ library AsterizmErrors {
     uint16 constant TRANSFER__WRONG_WALLET_OWNER__ERROR = 5002;
     uint16 constant TRANSFER__WRONG_HASH__ERROR = 5003;
     uint16 constant TRANSFER__WRONG_OWNER__ERROR = 5004;
+    uint16 constant TRANSFER__NOT_INITIALISED__ERROR = 5005;
 
     // For Nonce contract
     uint16 constant NONCE__NON_ZERO_PUBLIC_KEY__ERROR = 6001;

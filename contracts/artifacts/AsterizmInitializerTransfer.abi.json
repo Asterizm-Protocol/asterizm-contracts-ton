@@ -11,6 +11,13 @@
 			]
 		},
 		{
+			"name": "initialize",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "isExists",
 			"inputs": [
 				{"name":"answerId","type":"uint32"},
@@ -42,6 +49,7 @@
 		{"name":"_timestamp","type":"uint64"},
 		{"name":"_constructorFlag","type":"bool"},
 		{"name":"owner_","type":"address"},
-		{"name":"hash_","type":"uint256"}
+		{"name":"hash_","type":"uint256"},
+		{"name":"isInitialized","type":"bool"}
 	]
 }

@@ -150,6 +150,13 @@ contract AsterizmInitializer is AsterizmOwnable, IInitializerSender, IInitialize
         return contractAddress;
     }
 
+    /// Return initializer transfer contract
+    /// @param _transferHash uint  Transfer hash
+    /// @return AsterizmInitializerTransfer  Transfer hash contract
+    function _getTransferHashContract(uint _transferHash) private view returns(AsterizmInitializerTransfer) {
+        return AsterizmInitializerTransfer(_getTransferHashContractAddress(_transferHash));
+    }
+
     /// Return transfer hash contract address
     /// @param _transferHash uint  Transfer hash
     /// @return address  Transfer hash contract address
@@ -344,6 +351,7 @@ contract AsterizmInitializer is AsterizmOwnable, IInitializerSender, IInitialize
         );
 
         _deployTransferHashContract(_dto.transferHash);
+        _getTransferHashContract(_dto.transferHash).initialize();
 
         IClientReceiverContract(_dto.dstAddress.toAddress()).asterizmIzReceive{
             value: AsterizmEnvs.INITIALIZER__RECEIVE_TRANSFER_CLIENT_CONTRACT_VALUE,

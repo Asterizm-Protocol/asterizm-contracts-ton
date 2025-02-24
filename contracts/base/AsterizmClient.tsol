@@ -551,6 +551,7 @@ abstract contract AsterizmClient is IClientReceiverContract, AsterizmRefund {
         uint transferHash = _buildTransferHash(_getLocalChainId(), currentAddress.toUint(), _dstChainId, dstAddress, id, _payload);
 
         _deployClientTransferContract(transferHash, false);
+        _getClientTransferContract(transferHash, false).initialize();
 
         emit InitiateTransferEvent(_dstChainId, dstAddress, id, transferHash, _payload);
 
@@ -687,6 +688,8 @@ abstract contract AsterizmClient is IClientReceiverContract, AsterizmRefund {
         tvm.accept();
 
         _deployClientTransferContract(_dto.transferHash, true);
+        _getClientTransferContract(_dto.transferHash, true).initialize();
+
         emit PayloadReceivedEvent(_dto.srcChainId, _dto.srcAddress, _dto.txId, _dto.transferHash);
     }
 
