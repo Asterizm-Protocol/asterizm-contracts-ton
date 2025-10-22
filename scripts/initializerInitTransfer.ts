@@ -26,7 +26,7 @@ export async function run(provider: NetworkProvider) {
         sender, 
         toNano('0.1'),
         {
-            dstChainId: 40001n,
+            dstChainId: 40000n,
             dstAddress: BigInt(rcvDstAddress),
             transferHash: BigInt(txHash),
             txId: BigInt(txId),

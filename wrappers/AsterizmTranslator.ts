@@ -41,10 +41,10 @@ export class AsterizmTranslator implements Contract {
         return new AsterizmTranslator(address);
     }
 
-     static async createFromConfig(owner: Address, code: Cell, workchain = 0) {
+     static async createFromConfig(owner: Address, localChainId: number, code: Cell, workchain = 0) {
         const dataStr = await createInitialData(asterizmTranslatorAbi, {
             owner_ : owner.toRawString(),
-            localChainId_ : 40001,
+            localChainId_ : localChainId || 40001,
             localChainType_ : ChainTypes.TVM,
             nonce_ : 1,
         });

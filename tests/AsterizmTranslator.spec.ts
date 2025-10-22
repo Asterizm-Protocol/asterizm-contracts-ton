@@ -24,6 +24,7 @@ describe.skip('AsterizmTranslator', () => {
         tvmContract = blockchain.openContract(
             await AsterizmTranslator.createFromConfig(
                 deployer.address,
+                40001,
                 code,
             )
         );
@@ -51,7 +52,7 @@ describe.skip('AsterizmTranslator', () => {
         // get chains
         const res = await tvmContract.getChains();
         expect(res['1']).toBeUndefined();
-        expect(res['40001']).not.toBeUndefined();
+        expect(res['40000']).not.toBeUndefined();
         expect(res['11155111']).not.toBeUndefined();
     });
 

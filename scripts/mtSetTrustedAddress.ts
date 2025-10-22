@@ -27,7 +27,7 @@ export async function run(provider: NetworkProvider) {
     await sleep30(ui);
 
     await multichainToken.sendAddTrustedAddress(sender, toNano('0.1'), {
-        chainId: 40001,
+        chainId: 40000,
         trustedAddress: trustedAddress,
     });
     await sleep30(ui);

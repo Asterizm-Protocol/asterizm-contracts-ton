@@ -65,6 +65,7 @@ export async function integrationDeploy(blockchain: Blockchain) {
     const translator = blockchain.openContract(
         await AsterizmTranslator.createFromConfig(
             deployer.address,
+            40001,
             Cell.fromBase64(AsterizmTranslatorCode.code),
         )
     );

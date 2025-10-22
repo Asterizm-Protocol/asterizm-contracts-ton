@@ -1,6 +1,6 @@
 import type { NetworkProvider, UIProvider } from '@ton/blueprint';
 import { Cell, toNano } from '@ton/core';
-import {ChainTypes} from '../constants/base_chain_types';
+// import {ChainTypes} from '../constants/base_chain_types';
 import { AsterizmTranslator } from '../wrappers/AsterizmTranslator';
 import AsterizmTranslatorCode from '../contracts/artifacts/AsterizmTranslator.code.json';
 
@@ -15,13 +15,16 @@ export async function run(provider: NetworkProvider) {
     const ui = provider.ui();
     const sender = provider.sender();
     const owner = sender.address!;
-    ui.write('Owner address '+owner);
+    ui.write('Owner address ' + owner);
+
+    const localChainId = Number(await ui.input('Local chain ID: '));
 
     // Deploy Asterizm Translator
     ui.write('Deploying translator...');
     const translator = provider.open(
         await AsterizmTranslator.createFromConfig(
             owner,
+            localChainId,
             Cell.fromBase64(AsterizmTranslatorCode.code),
         )
     );
@@ -29,10 +32,10 @@ export async function run(provider: NetworkProvider) {
     await provider.waitForDeploy(translator.address, 100, 10000);
     ui.write('Translator address: ' + translator.address);
 
-    // add sepolia chain to translator
-    ui.write('Adding chain to translator...');
-    await translator.sendAddChain(sender, toNano('2'), 11155111, ChainTypes.EVM);
-    await sleep30(ui);
+    // // add Solana mainnet to translator
+    // ui.write('Adding chain to translator...');
+    // await translator.sendAddChain(sender, toNano('2'), 50000, ChainTypes.SOL);
+    // await sleep30(ui);
 
     // Deploy Asterizm Initializer
      ui.write('Deploying initializer...');
