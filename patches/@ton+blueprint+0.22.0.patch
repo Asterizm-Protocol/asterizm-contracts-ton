@@ -1,0 +1,27 @@
+diff --git a/node_modules/@ton/blueprint/dist/utils/selection.utils.js b/node_modules/@ton/blueprint/dist/utils/selection.utils.js
+index 1c26ef8..aefb2ec 100644
+--- a/node_modules/@ton/blueprint/dist/utils/selection.utils.js
++++ b/node_modules/@ton/blueprint/dist/utils/selection.utils.js
+@@ -43,13 +43,15 @@ const findCompiles = async (directory) => {
+ };
+ exports.findCompiles = findCompiles;
+ const findScripts = async () => {
+-    const dirents = await promises_1.default.readdir(paths_1.SCRIPTS_DIR, { recursive: true, withFileTypes: true });
+-    const scripts = dirents.filter((dirent) => dirent.isFile() && dirent.name.endsWith('.ts'));
+-    return scripts
+-        .map((script) => ({
+-        name: path_1.default.join(script.path.slice(paths_1.SCRIPTS_DIR.length + 1), path_1.default.parse(script.name).name),
+-        path: path_1.default.join(script.path, script.name),
+-    }))
++    // убираем recursive и не трогаем script.path
++    const dirents = await promises_1.default.readdir(paths_1.SCRIPTS_DIR, { withFileTypes: true });
++
++    return dirents
++        .filter((d) => d.isFile() && d.name.endsWith('.ts'))
++        .map((d) => ({
++            name: path_1.default.parse(d.name).name,           // addChain
++            path: path_1.default.join(paths_1.SCRIPTS_DIR, d.name), // scripts/addChain.ts
++        }))
+         .sort((a, b) => (a.name >= b.name ? 1 : -1));
+ };
+ exports.findScripts = findScripts;

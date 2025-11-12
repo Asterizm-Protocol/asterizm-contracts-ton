@@ -11,7 +11,6 @@ import { saveJson } from '../utils/saveJson';
 export async function run(provider: NetworkProvider) {
     const ui = provider.ui();
     const sender = provider.sender();
-    const mockTrustedAddress = "0x191e5ed7cf3cf63975b96c4efc20da4e5f5a78827fb28c3e717f58252adcd8f4";
     const owner = sender.address!;
     ui.write('Owner address '+owner);
     const initializer = Address.parse(asterizmCoreContracts.initializer);
@@ -39,18 +38,6 @@ export async function run(provider: NetworkProvider) {
     // initialize multichain token
     ui.write('Initializing multichain token...');
     await multichainToken.sendInitialize(sender, toNano('5'));
-    await sleep30(ui);
-
-    // add trusted address
-    ui.write('Adding trusted address...');
-    await multichainToken.sendAddTrustedAddress(
-        sender, 
-        toNano('1'), 
-        {
-            chainId: 11155111,
-            trustedAddress: mockTrustedAddress,
-        }
-    );
     await sleep30(ui);
 
     // set MultichainToken jetton wallet address
