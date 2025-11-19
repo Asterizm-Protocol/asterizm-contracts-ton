@@ -8,15 +8,13 @@ export async function run(provider: NetworkProvider) {
     const ui = provider.ui();
     const sender = provider.sender();
     const owner = sender.address!;
-    ui.write('Owner address '+owner);
+    ui.write('Owner address ' + owner);
 
     const multichainToken = provider.open(
         MultichainToken.createFromAddress(
             Address.parse(mtContractAddress.multichainToken)
         ),
     );
-    //0:d63659b27081e7af87bb23bcb03c45b95a9d06fe089c15c0dfd5e365dde32183
-    ui.write('0:d63659b27081e7af87bb23bcb03c45b95a9d06fe089c15c0dfd5e365dde32183');
     const chainId = await ui.input('Chain ID: ');
     const addressUint = await ui.input('Trusted address (uint): ');
 
