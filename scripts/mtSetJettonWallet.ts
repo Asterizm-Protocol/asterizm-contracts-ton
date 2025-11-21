@@ -20,14 +20,14 @@ export async function run(provider: NetworkProvider) {
     );
 
     // For testnet
-    // const jettonMinter = provider.open(
-    //     JettonMinter.createFromAddress(
-    //         Address.parse(contractAddress.jettonMinter)
-    //     ),
-    // ) ;
-    // // get owner's jetton wallet
-    // const jettonWalletAddress = await jettonMinter.getWalletAddress(multichainToken.address);
-    // ui.write("MultichainToken precalculated jetton wallet address "+jettonWalletAddress);
+    const jettonMinter = provider.open(
+        JettonMinter.createFromAddress(
+            Address.parse(contractAddress.jettonMinter)
+        ),
+    ) ;
+    // get owner's jetton wallet
+    const jettonWalletAddress = await jettonMinter.getWalletAddress(multichainToken.address);
+    ui.write("MultichainToken precalculated jetton wallet address "+jettonWalletAddress);
 
     const jettonWallet = await ui.inputAddress('MultichainToken Jetton wallet address:');
 
