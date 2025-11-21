@@ -29,10 +29,10 @@ export async function run(provider: NetworkProvider) {
     const jettonWalletAddress = await jettonMinter.getWalletAddress(multichainToken.address);
     ui.write("MultichainToken precalculated jetton wallet address "+jettonWalletAddress);
 
-    const jettonWallet = await ui.inputAddress('MultichainToken Jetton wallet address:');
+    // const jettonWallet = await ui.inputAddress('MultichainToken Jetton wallet address:');
 
     await multichainToken.sendSetBaseTokenWallet(sender, toNano('0.1'), {
-        wallet: jettonWallet,
+        wallet: jettonWalletAddress,
     });
     await sleep30(ui);
 
