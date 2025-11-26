@@ -19,3 +19,4 @@ Session.vim
 contracts/artifacts/*.tvc
 contracts/artifacts/*.code
 contracts/artifacts/*.debug.json
+blueprint.config.ts

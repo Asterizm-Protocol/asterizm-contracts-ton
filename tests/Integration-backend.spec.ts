@@ -2,6 +2,7 @@ import { Blockchain } from '@ton/sandbox';
 import { toNano, Address, beginCell, Cell } from '@ton/core';
 import '@ton/test-utils';
 import { decodeMessageBody } from '../utils/decodeMessageBody';
+import { findDecodedEvent } from '../utils/findDecodedEvent';
 import clientTransferAbi from "../contracts/artifacts/AsterizmClientTransfer.abi.json"
 import initializerTransferAbi from "../contracts/artifacts/AsterizmInitializerTransfer.abi.json"
 import initializerAbi from "../contracts/artifacts/AsterizmInitializer.abi.json"
@@ -314,26 +315,27 @@ describe('Integration-backend', () => {
             }
         );
         expect(init_tx.externals.length).toEqual(10);
-        txEvent = await decodeMessageBody(initializerAbi, init_tx.externals[0].body.toBoc().toString('base64'));
-        expect(txEvent.name).toEqual('InitTransferSuccessfullyEvent');
-        txEvent = await decodeMessageBody(clientTransferAbi, init_tx.externals[1].body.toBoc().toString('base64'));
-        expect(txEvent.name).toEqual('ExecuteTransferEvent');
-        txEvent = await decodeMessageBody(translatorAbi, init_tx.externals[2].body.toBoc().toString('base64'));
-        expect(txEvent.name).toEqual('SuccessTransferEvent');
-        txEvent = await decodeMessageBody(translatorAbi, init_tx.externals[3].body.toBoc().toString('base64'));
-        expect(txEvent.name).toEqual('TransferSendEvent');
-        txEvent = await decodeMessageBody(initializerAbi, init_tx.externals[4].body.toBoc().toString('base64'));
-        expect(txEvent.name).toEqual('TransferHashContractDeployEvent');
-        txEvent = await decodeMessageBody(initializerAbi, init_tx.externals[5].body.toBoc().toString('base64'));
-        expect(txEvent.name).toEqual('SentPayloadEvent');
-        txEvent = await decodeMessageBody(initializerTransferAbi, init_tx.externals[6].body.toBoc().toString('base64'));
-        expect(txEvent.name).toEqual('DeployInitializerTransferContractEvent');
-        txEvent = await decodeMessageBody(multichainTokenAbi, init_tx.externals[7].body.toBoc().toString('base64'));
-        expect(txEvent.name).toEqual('TransferContractDeployEvent');
-        txEvent = await decodeMessageBody(multichainTokenAbi, init_tx.externals[8].body.toBoc().toString('base64'));
-        expect(txEvent.name).toEqual('PayloadReceivedEvent');
-        txEvent = await decodeMessageBody(clientTransferAbi, init_tx.externals[9].body.toBoc().toString('base64'));
-        expect(txEvent.name).toEqual('DeployClientTransferContractEvent');
+        // console.log([init_tx.externals[0].body.toBoc().toString('base64')]);
+        txEvent = await findDecodedEvent(initializerAbi, init_tx.externals, 'InitTransferSuccessfullyEvent');
+        expect(txEvent?.name).toEqual('InitTransferSuccessfullyEvent');
+        txEvent = await findDecodedEvent(clientTransferAbi, init_tx.externals, 'ExecuteTransferEvent');
+        expect(txEvent?.name).toEqual('ExecuteTransferEvent');
+        txEvent = await findDecodedEvent(translatorAbi, init_tx.externals, 'SuccessTransferEvent');
+        expect(txEvent?.name).toEqual('SuccessTransferEvent');
+        txEvent = await findDecodedEvent(translatorAbi, init_tx.externals, 'TransferSendEvent');
+        expect(txEvent?.name).toEqual('TransferSendEvent');
+        txEvent = await findDecodedEvent(initializerAbi, init_tx.externals, 'TransferHashContractDeployEvent');
+        expect(txEvent?.name).toEqual('TransferHashContractDeployEvent');
+        txEvent = await findDecodedEvent(initializerAbi, init_tx.externals, 'SentPayloadEvent');
+        expect(txEvent?.name).toEqual('SentPayloadEvent');
+        txEvent = await findDecodedEvent(initializerTransferAbi, init_tx.externals, 'DeployInitializerTransferContractEvent');
+        expect(txEvent?.name).toEqual('DeployInitializerTransferContractEvent');
+        txEvent = await findDecodedEvent(multichainTokenAbi, init_tx.externals, 'TransferContractDeployEvent');
+        expect(txEvent?.name).toEqual('TransferContractDeployEvent');
+        txEvent = await findDecodedEvent(multichainTokenAbi, init_tx.externals, 'PayloadReceivedEvent');
+        expect(txEvent?.name).toEqual('PayloadReceivedEvent');
+        txEvent = await findDecodedEvent(clientTransferAbi, init_tx.externals, 'DeployClientTransferContractEvent');
+        expect(txEvent?.name).toEqual('DeployClientTransferContractEvent');
 
         // call addRefundRequest
         let sendAddRefundRequestTx = await multichainToken.sendAddRefundRequest(

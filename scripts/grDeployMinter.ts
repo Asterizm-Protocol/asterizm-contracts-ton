@@ -1,6 +1,5 @@
-import { NetworkProvider, UIProvider, compile } from '@ton/blueprint';
-import { Cell, toNano, Address } from '@ton/core';
-import { sleep30 } from '../utils/sleep30';
+import { NetworkProvider, compile } from '@ton/blueprint';
+import { toNano } from '@ton/core';
 import { JettonMinter, jettonContentToCell } from '../wrappers/jettons/JettonMinter';
 import { saveJson } from '../utils/saveJson';
 
@@ -9,6 +8,7 @@ export async function run(provider: NetworkProvider) {
     const sender = provider.sender();
     const owner = sender.address!;
     ui.write('Owner address '+owner);
+
     // Deploy granter
     ui.write('Deploying minter...');
     const content = jettonContentToCell({type:1,uri:"https://example.com/1"});

@@ -223,6 +223,12 @@ contract AsterizmInitializer is AsterizmOwnable, IInitializerSender, IInitialize
         });
     }
 
+    /// Withdraw excess coins to owner
+    function withdrawCoins() external onlyOwner {
+        tvm.rawReserve(AsterizmEnvs.INITIALIZER__MIN_CONTRACT_BALANCE, 0);
+        owner().transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
+    }
+
 
     /*******************/
     /** External logic */

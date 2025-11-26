@@ -6,15 +6,13 @@ import "../../base/AsterizmClient.tsol";
 import "../../base/AsterizmErrors.tsol";
 import "../../base/AsterizmEnvs.tsol";
 
-contract MultichainToken is AsterizmClient {
+contract MultichainTokenWR is AsterizmClient {
 
     uint public tokenBalance;
     address public baseTokenWallet;
 
     /// Constructor
-    constructor() AsterizmClient() {
-        refundLogicIsAvailable = true;
-    }
+    constructor() AsterizmClient() {}
 
     /// Set base token wallet address
     /// @param _baseTokenAddress address  Base token wallet address
@@ -31,10 +29,7 @@ contract MultichainToken is AsterizmClient {
     function crossChainTransfer(uint64 _dstChainId, address _from, uint256 _to, uint _amount) internal {
         require(_amount > 0, AsterizmErrors.CLIENT__ZERO_AMOUNT__ERROR);
         tokenBalance += _amount;
-        uint transferHash = _initAsterizmTransferEvent(_dstChainId, abi.encode(_to, _amount, _getTxId()));
-        if (_getIsRefundLogicAvailable()) {
-            _addRefundTransfer(transferHash, _from, _amount, baseTokenWallet);
-        }
+        _initAsterizmTransferEvent(_dstChainId, abi.encode(_to, _amount, _getTxId()));
     }
 
     /// Receive non-encoded payload
@@ -68,7 +63,7 @@ contract MultichainToken is AsterizmClient {
         body.storeUint(fwdAmount, 8);
         body.storeZeroes(1);// false Either for empty payload
 
-       return body.toCell();
+        return body.toCell();
     }
 
     /// Send base token
@@ -112,14 +107,5 @@ contract MultichainToken is AsterizmClient {
                 sendBaseToken(sender, tokenAmount, false);
             }
         }
-    }
-
-    /// Refund tokens
-    /// @param _targetAddress address  Target address
-    /// @param _amount uint  Coins amount
-    /// @param _tokenAddress address  Token address
-    function _refundTokens(address _targetAddress, uint _amount, address _tokenAddress) internal override {
-        require(_tokenAddress == baseTokenWallet, AsterizmErrors.CLIENT__WRONG_TOKEN__ERROR);
-        sendBaseToken(_targetAddress, _amount, true);
     }
 }

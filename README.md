@@ -11,9 +11,13 @@
 
 Check [DOCS.md](./DOCS.md) or visit [Asterizm Docs](https://docs.asterizm.io/)
 
-### Build
+### Build base contracts
 
-`npx blueprint build` or `yarn blueprint build` or `yarn build:all`
+`npx blueprint build` or `yarn blueprint build`
+
+### Build solid contracts
+
+`npm run build:all`
 
 ### Test
 

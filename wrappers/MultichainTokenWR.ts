@@ -3,7 +3,7 @@ import { createInitialData } from '../utils/createInitialData';
 import { encodeMessageBody } from '../utils/encodeMessageBody';
 import { decodeAccountData } from '../utils/decodeAccountData';
 
-import multichainTokenAbi from "../contracts/artifacts/MultichainToken.abi.json"
+import multichainTokenAbi from "../contracts/artifacts/MultichainTokenWR.abi.json"
 import asterizmRefundTransferCode from "../contracts/artifacts/AsterizmRefundTransfer.code.json";
 import asterizmRefundRequestCode from "../contracts/artifacts/AsterizmRefundRequest.code.json";
 import asterizmRefundConfirmationCode from "../contracts/artifacts/AsterizmRefundConfirmation.code.json";
@@ -32,7 +32,7 @@ export const Opcodes = {
     processRefundRequest: 0x234f3688,
     confirmRefund: 0x65fe9906,
     updateChainsList: 0x383933f2,
-  };
+};
 /*
 {
   "addRefundRequest": "0x208824f8",
@@ -73,11 +73,11 @@ export const Opcodes = {
 }
 */
 
-export class MultichainToken implements Contract {
+export class MultichainTokenWR implements Contract {
     constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
 
     static createFromAddress(address: Address) {
-        return new MultichainToken(address);
+        return new MultichainTokenWR(address);
     }
 
     static async createFromConfig(config: MultichainTokenContractConfig, code: Cell, workchain = 0) {
@@ -93,7 +93,7 @@ export class MultichainToken implements Contract {
         });
         const data = Cell.fromBase64(dataStr);
         const init = { code, data };
-        return new MultichainToken(contractAddress(workchain, init), init);
+        return new MultichainTokenWR(contractAddress(workchain, init), init);
     }
 
     public async sendConstructor(
@@ -248,7 +248,7 @@ export class MultichainToken implements Contract {
                 .endCell(),
         });
     }
-    
+
     public async sendResendAsterizmTransfer(
         provider: ContractProvider,
         via: Sender,
@@ -363,7 +363,7 @@ export class MultichainToken implements Contract {
                 .endCell(),
         });
     }
-    
+
 
     public async getData(provider: ContractProvider) {
         const data = await decodeAccountData(multichainTokenAbi, provider);

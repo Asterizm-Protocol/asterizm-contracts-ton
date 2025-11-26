@@ -459,7 +459,6 @@ abstract contract AsterizmClient is IClientReceiverContract, AsterizmRefund {
         });
     }
 
-
     /// Build transfer hash
     /// @param _srcChainId uint64  Chain ID
     /// @param _srcAddress uint  Address
@@ -531,6 +530,12 @@ abstract contract AsterizmClient is IClientReceiverContract, AsterizmRefund {
     /// @return bool
     function getNotifyTransferSendingResult() external view returns(bool) {
         return notifyTransferSendingResult_;
+    }
+
+    /// Withdraw excess coins to owner
+    function withdrawCoins() external onlyOwner {
+        tvm.rawReserve(AsterizmEnvs.CLIENT__MIN_CONTRACT_BALANCE, 0);
+        owner().transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
     }
 
 
@@ -635,11 +640,13 @@ abstract contract AsterizmClient is IClientReceiverContract, AsterizmRefund {
             ClInitTransferRequestDto dto = abi.decode(outboundTransfers[smallTransferHash].dto, (ClInitTransferRequestDto));
             uint128 msgValue = outboundTransfers[smallTransferHash].msgValue;
             delete outboundTransfers[smallTransferHash];
+
+            hashContract.executeTransfer{ value: AsterizmEnvs.TRANSFER__SET_REQUEST_VALUE }(smallTransferHash);
+
             initializerLib_.initTransfer{value: msgValue, flag: AsterizmTransferFlags.SENDER_PAYS_FEES, bounce: true} (
                 _buildIzInitTransferRequestDto(dto.dstChainId, dto.dstAddress, dto.txId, dto.transferHash, dto.dstFeeAmount, externalRelay, notifyTransferSendingResult_)
             );
 
-            hashContract.executeTransfer{ value: AsterizmEnvs.TRANSFER__SET_REQUEST_VALUE }(smallTransferHash);
         }
     }
 

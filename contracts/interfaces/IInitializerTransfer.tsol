@@ -3,9 +3,6 @@ pragma ton-solidity >= 0.70.0;
 /// Initializer transfer interface
 interface IInitializerTransfer {
 
-    // Initialize contract after deploy
-    function initialize() external;
-
     /// Is transfer exists
     /// @param _smallTransferHash uint128
     /// @return uint, bool, uint8

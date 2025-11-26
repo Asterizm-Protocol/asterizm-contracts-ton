@@ -185,6 +185,12 @@ contract AsterizmTranslator is AsterizmOwnable, ITranslator, AsterizmStructs, As
         emit RemoveChainEvent(_chainId);
     }
 
+    /// Withdraw excess coins to owner
+    function withdrawCoins() external onlyOwner {
+        tvm.rawReserve(AsterizmEnvs.TRANSLATOR__MIN_CONTRACT_BALANCE, 0);
+        owner().transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
+    }
+
 
     /*******************/
     /** External logic */
