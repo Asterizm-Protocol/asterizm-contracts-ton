@@ -30,3 +30,7 @@ Check [DOCS.md](./DOCS.md) or visit [Asterizm Docs](https://docs.asterizm.io/)
 ### Add a new contract
 
 `npx blueprint create ContractName` or `yarn blueprint create ContractName`
+
+### Get contract function opcodes
+
+`./sold --function-ids {path-to-contract}`

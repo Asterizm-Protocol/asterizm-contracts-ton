@@ -121,7 +121,9 @@ export async function integrationDeploy(blockchain: Blockchain) {
 
     // set initializer to translator
     await translator.sendSetInitializer(deployer.getSender(), toNano('2'), initializer.address);
-    expect(await translator.getInitializerLib()).toEqual(initializer.address.toRawString());    // deploy multichain token
+    expect(await translator.getInitializerLib()).toEqual(initializer.address.toRawString());
+
+    // deploy multichain token
     const multichainToken = blockchain.openContract(
         await MultichainToken.createFromConfig(
             {

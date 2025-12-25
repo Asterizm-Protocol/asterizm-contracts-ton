@@ -61,6 +61,13 @@
 			]
 		},
 		{
+			"name": "withdrawCoins",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "updateTrustedRelayFee",
 			"inputs": [
 				{"name":"_fee","type":"uint128"}

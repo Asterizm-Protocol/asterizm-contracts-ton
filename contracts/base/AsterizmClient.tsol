@@ -70,8 +70,9 @@ abstract contract AsterizmClient is IClientReceiverContract, AsterizmRefund {
     event SetDisableHashValidationEvent(bool _flag);
 
     /// Asterizm client transfet contract deploy event
-    /// @param _address address
-    event TransferContractDeployEvent(address _address);
+    /// @param _transferHash Transfer hash
+    /// @param _address Deployed contract address
+    event TransferContractDeployEvent(uint _transferHash, address _address);
 
     /// Transfer error event
     /// @param _transferHash uint
@@ -351,7 +352,7 @@ abstract contract AsterizmClient is IClientReceiverContract, AsterizmRefund {
             wid: address(this).wid,
             flag: AsterizmTransferFlags.SENDER_PAYS_FEES
         }();
-        emit TransferContractDeployEvent(contractAddress);
+        emit TransferContractDeployEvent(_transferHash, contractAddress);
 
         return contractAddress;
     }

@@ -1,0 +1,8 @@
+pragma ton-solidity >= 0.70.0;
+
+library MultichainTokenEnvs {
+
+    // Multichain token contract
+    uint128 constant MULTICHAIN__MIN_CONTRACT_BALANCE = 1 ton;
+    uint128 constant MULTICHAIN__SEND_BASE_TOKEN_VALUE = 0.05 ton;
+}

@@ -267,7 +267,7 @@ abstract contract AsterizmRefund is AsterizmSender, AsterizmStructs {
     /// @param _transferHash uint  Transfer hash
     function addRefundRequest(uint _transferHash) external view onlyRefundLogicAvailable {
         require(
-            msg.value > refundFee + AsterizmEnvs.REFUND__MIN_DEPLOY_CONTRACT_VALUE + AsterizmEnvs.REFUND__SET_DATA_VALUE,
+            msg.value > refundFee + AsterizmEnvs.REFUND__MIN_DEPLOY_CONTRACT_VALUE + AsterizmEnvs.REFUND__GET_REQUEST_VALUE + AsterizmEnvs.REFUND__SET_DATA_VALUE,
             AsterizmErrors.REFUND__TRANSFER_FEE_VALUE_IS_TOO_SMALL__ERROR
         );
 
@@ -281,7 +281,7 @@ abstract contract AsterizmRefund is AsterizmSender, AsterizmStructs {
         }
 
         _getRefundTransferContract(_transferHash).getData{
-            value: AsterizmEnvs.TRANSFER__GET_REQUEST_VALUE,
+            value: AsterizmEnvs.REFUND__GET_REQUEST_VALUE,
             callback: onAddRefundRequestCallback,
             bounce: true
         }(msg.sender);
@@ -298,7 +298,7 @@ abstract contract AsterizmRefund is AsterizmSender, AsterizmStructs {
 
         _deployRefundRequestContract(_transferHash);
         _getRefundRequestContract(_transferHash).setData{
-            value: AsterizmEnvs.TRANSFER__SET_REQUEST_VALUE,
+            value: AsterizmEnvs.REFUND__SET_DATA_VALUE,
             flag: AsterizmTransferFlags.SENDER_PAYS_FEES
         }(_userAddress, _amount, _tokenAddress);
 
@@ -316,7 +316,7 @@ abstract contract AsterizmRefund is AsterizmSender, AsterizmStructs {
     /// @param _status bool  Request status (true - success, false - not success)
     function processRefundRequest(uint _transferHash, bool _status) external view onlyRefundLogicAvailable onlySenderOrOwner {
         _getRefundRequestContract(_transferHash).getData{
-            value: AsterizmEnvs.TRANSFER__GET_REQUEST_VALUE,
+            value: AsterizmEnvs.REFUND__GET_REQUEST_VALUE,
             callback: onProcessRefundRequestCallback,
             bounce: true
         }(_status);

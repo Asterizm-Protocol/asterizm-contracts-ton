@@ -19,6 +19,14 @@
 			]
 		},
 		{
+			"name": "setInitTransferFee",
+			"inputs": [
+				{"name":"_fee","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "initialize",
 			"inputs": [
 			],
@@ -330,6 +338,14 @@
 			"outputs": [
 				{"name":"baseTokenWallet","type":"address"}
 			]
+		},
+		{
+			"name": "initTransferFee",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"initTransferFee","type":"uint128"}
+			]
 		}
 	],
 	"data": [
@@ -435,6 +451,7 @@
 		{
 			"name": "TransferContractDeployEvent",
 			"inputs": [
+				{"name":"_transferHash","type":"uint256"},
 				{"name":"_address","type":"address"}
 			],
 			"outputs": [
@@ -613,6 +630,7 @@
 		{"name":"disableHashValidation_","type":"bool"},
 		{"name":"hashVersion_","type":"uint8"},
 		{"name":"tokenBalance","type":"uint256"},
-		{"name":"baseTokenWallet","type":"address"}
+		{"name":"baseTokenWallet","type":"address"},
+		{"name":"initTransferFee","type":"uint128"}
 	]
 }

@@ -59,6 +59,13 @@
 			]
 		},
 		{
+			"name": "withdrawCoins",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "getLocalChainId",
 			"inputs": [
 				{"name":"answerId","type":"uint32"}

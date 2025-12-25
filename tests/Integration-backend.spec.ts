@@ -56,12 +56,12 @@ describe('Integration-backend', () => {
             .endCell();
         const transfer_tx = await userJettonWallet.sendTransfer(
             user.getSender(),
-            toNano('0.1'),
+            toNano('0.25'),
             sendValue,
             multichainToken.address,
             Address.parse('0:0000000000000000000000000000000000000000000000000000000000000000'),//responseAddress
             beginCell().endCell(), //customPayload: Cell,
-            toNano('0.03'),//forward_ton_amount: bigint,
+            toNano('0.2'),//forward_ton_amount: bigint,
             forwardPayload
         )
 
@@ -148,7 +148,7 @@ describe('Integration-backend', () => {
         //console.log((await blockchain.getContract(multichainToken.address)).balance);
         let sendCl = await multichainToken.sendAsterizmClReceive(
             deployer.getSender(),
-            toNano('0.2'),
+            toNano('0.25'),
             {
                 srcChainId: clSrcChainId,
                 srcAddress: clSrcAddress,
@@ -264,12 +264,12 @@ describe('Integration-backend', () => {
             .endCell();
         const transfer_tx = await userJettonWallet.sendTransfer(
             user.getSender(),
-            toNano('0.1'),
+            toNano('0.25'),
             sendValue,
             multichainToken.address,
             Address.parse('0:0000000000000000000000000000000000000000000000000000000000000000'),//responseAddress
             beginCell().endCell(), //customPayload: Cell,
-            toNano('0.03'),//forward_ton_amount: bigint,
+            toNano('0.2'),//forward_ton_amount: bigint,
             forwardPayload
         )
 
@@ -340,7 +340,7 @@ describe('Integration-backend', () => {
         // call addRefundRequest
         let sendAddRefundRequestTx = await multichainToken.sendAddRefundRequest(
             user.getSender(),
-            toNano('0.15'),
+            toNano('0.3'),
             { transferHash: clTransferHash }
         );
         expect(sendAddRefundRequestTx.externals.length).toEqual(4);
@@ -409,6 +409,137 @@ describe('Integration-backend', () => {
         txEvent = await decodeMessageBody(multichainTokenAbi, sendCl.externals[0].body.toBoc().toString('base64'));
         expect(txEvent.name).toEqual('TransferWasRefundedEvent');
         expect(BigInt(txEvent.value._transferHash)).toEqual(clTransferHash);
+    });
+    it('Init transfer with init transfer fee failed', async () => {
+
+        const blockchain = await Blockchain.create();
+
+        const {
+            deployer,
+            user,
+            translator,
+            initializer,
+            userJettonWallet,
+            multichainToken,
+            mtJettonWallet,
+            mockTrustedAddress
+        } = await integrationDeploy(blockchain);
+
+        // Deploy Chain Mock contract
+        const chainMock = blockchain.openContract(
+            await ChainMock.createFromConfig(
+                deployer.address,
+                Cell.fromBase64(ChainMockCode.code),
+            )
+        );
+
+        const chainMockResult = await chainMock.sendConstructor(deployer.getSender(), toNano('2'));
+        expect(chainMockResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: chainMock.address,
+            deploy: true,
+            success: true,
+        });
+
+        const initTransferFee = toNano('1');
+
+        const init_tx = await multichainToken.sendSetInitTransferFee(deployer.getSender(), toNano('0.2'), {
+            feeAmount: initTransferFee.toString(),
+        });
+
+        expect(await multichainToken.getInitTransferFee()).toEqual(initTransferFee.toString());
+
+        // transfer to multichain token JettonWallet
+        // it leads to crossChainTransfer call
+        const sendValue = toNano('6');
+        const zeroValue = '0';
+        const forwardPayload = beginCell()
+            .storeUint(11155111, 64)
+            .storeUint(BigInt("0x1234"),256)
+            .endCell();
+
+        await userJettonWallet.sendTransfer(
+            user.getSender(),
+            toNano('0.25'),
+            sendValue,
+            multichainToken.address,
+            Address.parse('0:0000000000000000000000000000000000000000000000000000000000000000'),//responseAddress
+            beginCell().endCell(), //customPayload: Cell,
+            toNano('0.2'),//forward_ton_amount: bigint,
+            forwardPayload
+        )
+        // Transfer failed because of initTransferFee
+        expect(BigInt(await multichainToken.getTokenBalance()).toString()).toEqual(zeroValue.toString());
+    });
+    it('Init transfer with init transfer fee success', async () => {
+
+        const blockchain = await Blockchain.create();
+
+        const {
+            deployer,
+            user,
+            translator,
+            initializer,
+            userJettonWallet,
+            multichainToken,
+            mtJettonWallet,
+            mockTrustedAddress
+        } = await integrationDeploy(blockchain);
+
+        // Deploy Chain Mock contract
+        const chainMock = blockchain.openContract(
+            await ChainMock.createFromConfig(
+                deployer.address,
+                Cell.fromBase64(ChainMockCode.code),
+            )
+        );
+
+        const chainMockResult = await chainMock.sendConstructor(deployer.getSender(), toNano('2'));
+        expect(chainMockResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: chainMock.address,
+            deploy: true,
+            success: true,
+        });
+
+        const initTransferFee = toNano('1');
+
+        const init_tx = await multichainToken.sendSetInitTransferFee(deployer.getSender(), toNano('0.2'), {
+            feeAmount: initTransferFee.toString(),
+        });
+
+        expect(await multichainToken.getInitTransferFee()).toEqual(initTransferFee.toString());
+
+        // transfer to multichain token JettonWallet
+        // it leads to crossChainTransfer call
+        const sendValue = toNano('6');
+        const zeroValue = '0';
+        const forwardPayload = beginCell()
+            .storeUint(11155111, 64)
+            .storeUint(BigInt("0x1234"),256)
+            .endCell();
+        const transfer_tx = await userJettonWallet.sendTransfer(
+            user.getSender(),
+            toNano('1.25'), // with initTransferFee
+            sendValue,
+            multichainToken.address,
+            Address.parse('0:0000000000000000000000000000000000000000000000000000000000000000'),//responseAddress
+            beginCell().endCell(), //customPayload: Cell,
+            toNano('1.2'),//forward_ton_amount: bigint; with initTransferFee
+            forwardPayload
+        )
+        expect(BigInt(await mtJettonWallet.getJettonBalance()).toString()).toEqual(sendValue.toString());
+        expect(BigInt(await userJettonWallet.getJettonBalance()).toString()).toEqual(sendValue.toString());
+        expect(BigInt(await multichainToken.getTokenBalance()).toString()).toEqual(sendValue.toString());
+
+        // Get event InitiateTransferEvent
+        const slice = transfer_tx.externals[1].body.beginParse();
+        const event_id =  slice.loadUint(32);
+        expect(event_id).toEqual(0xc89167d);
+        const chain_id =  slice.loadUint(64);
+        const dstAddress = slice.loadBits(256);
+        const txId = "0x" + slice.loadBits(256).toString();
+        const transferHash = "0x" + slice.loadBits(256).toString();
     });
 
 });

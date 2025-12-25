@@ -1,0 +1,11 @@
+pragma ton-solidity >= 0.70.0;
+
+library MultichainTokenErrors {
+
+    // For Multichain token contract
+    uint16 constant GAS__SUCCESS = 0;
+    uint16 constant MULTICHAIN__MIN_INIT_TRANSFER_FEE_ERROR__ERROR = 9001;
+    uint16 constant MULTICHAIN__ZERO_AMOUNT__ERROR = 9002;
+    uint16 constant MULTICHAIN__NOT_ENOUGH_TOKENS__ERROR = 9003;
+    uint16 constant MULTICHAIN__WRONG_TOKEN__ERROR = 9004;
+}

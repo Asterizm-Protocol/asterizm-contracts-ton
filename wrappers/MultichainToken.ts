@@ -32,6 +32,7 @@ export const Opcodes = {
     processRefundRequest: 0x234f3688,
     confirmRefund: 0x65fe9906,
     updateChainsList: 0x383933f2,
+    setInitTransferFee: 0x659c7860,
   };
 /*
 {
@@ -67,6 +68,7 @@ export const Opcodes = {
   "resendAsterizmTransfer": "0x2168c733",
   "setBaseTokenWallet": "0x3fe7a5c6",
   "setExternalRelay": "0x5df6d154",
+  "setInitTransferFee": "0x659c7860",
   "tokenBalance": "0x7ed694f2",
   "transferSendingResultNotification": "0x532b776e",
   "updateChainsList": "0x383933f2"
@@ -203,6 +205,24 @@ export class MultichainToken implements Contract {
             body: beginCell()
                 .storeUint(Opcodes.setBaseTokenWallet, 32)
                 .storeAddress(params.wallet)
+                .endCell(),
+        });
+    }
+
+    public async sendSetInitTransferFee(
+        provider: ContractProvider,
+        via: Sender,
+        value: bigint,
+        params: {
+            feeAmount: string,
+        }
+    ) {
+        await provider.internal(via, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(Opcodes.setInitTransferFee, 32)
+                .storeUint(BigInt(params.feeAmount), 128)
                 .endCell(),
         });
     }
@@ -372,6 +392,10 @@ export class MultichainToken implements Contract {
     public async getChains(provider: ContractProvider) {
         const data = await decodeAccountData(multichainTokenAbi, provider);
         return data.chains;
+    }
+    public async getInitTransferFee(provider: ContractProvider) {
+        const data = await decodeAccountData(multichainTokenAbi, provider);
+        return data.initTransferFee;
     }
 
     public async getLocalChainId(provider: ContractProvider) {

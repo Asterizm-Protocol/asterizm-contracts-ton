@@ -30,7 +30,7 @@ describe('Integration-omnichain', () => {
             multichainToken.address,
             Address.parse('0:0000000000000000000000000000000000000000000000000000000000000000'),//responseAddress
             beginCell().endCell(), //customPayload: Cell,
-            toNano('0.02'),//forward_ton_amount: bigint,
+            toNano('0.05'),//forward_ton_amount: bigint,
             badForwardPayload
         )
 
@@ -61,12 +61,12 @@ describe('Integration-omnichain', () => {
             .endCell();
         await userJettonWallet.sendTransfer(
             user.getSender(),
-            toNano('0.1'),
+            toNano('0.25'),
             sendValue,
             multichainToken.address,
             Address.parse('0:0000000000000000000000000000000000000000000000000000000000000000'),//responseAddress
             beginCell().endCell(), //customPayload: Cell,
-            toNano('0.05'),//forward_ton_amount: bigint,
+            toNano('0.2'),//forward_ton_amount: bigint,
             forwardPayload
         )
 

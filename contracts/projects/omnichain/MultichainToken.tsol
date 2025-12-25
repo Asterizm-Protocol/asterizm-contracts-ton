@@ -3,24 +3,41 @@ pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
 import "../../base/AsterizmClient.tsol";
-import "../../base/AsterizmErrors.tsol";
 import "../../base/AsterizmEnvs.tsol";
+import "./MultichainTokenErrors.tsol";
+import "./MultichainTokenEnvs.tsol";
 
 contract MultichainToken is AsterizmClient {
 
     uint public tokenBalance;
     address public baseTokenWallet;
+    uint128 public initTransferFee;
 
     /// Constructor
     constructor() AsterizmClient() {
         refundLogicIsAvailable = true;
     }
 
+    /// Only with fee modifier
+    modifier onlyWithFee {
+        require(msg.value > initTransferFee, MultichainTokenErrors.MULTICHAIN__MIN_INIT_TRANSFER_FEE_ERROR__ERROR);
+        _;
+    }
+
     /// Set base token wallet address
     /// @param _baseTokenAddress address  Base token wallet address
     function setBaseTokenWallet(address _baseTokenAddress) public onlyOwner {
-        tvm.rawReserve(AsterizmEnvs.MULTICHAIN__MIN_CONTRACT_BALANCE, 0);
+        tvm.rawReserve(MultichainTokenEnvs.MULTICHAIN__MIN_CONTRACT_BALANCE, 0);
         baseTokenWallet = _baseTokenAddress;
+        owner().transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
+    }
+
+    /// Set init transfer fee address
+    /// @param _fee uint128  Fee amount
+    function setInitTransferFee(uint128 _fee) public onlyOwner {
+        tvm.rawReserve(MultichainTokenEnvs.MULTICHAIN__MIN_CONTRACT_BALANCE, 0);
+        initTransferFee = _fee;
+        owner().transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
     }
 
     /// Cross-chain transfer
@@ -28,12 +45,16 @@ contract MultichainToken is AsterizmClient {
     /// @param _from address  From address
     /// @param _to uint  To address
     /// @param _amount uint  Token amount
-    function crossChainTransfer(uint64 _dstChainId, address _from, uint256 _to, uint _amount) internal {
-        require(_amount > 0, AsterizmErrors.CLIENT__ZERO_AMOUNT__ERROR);
+    function crossChainTransfer(uint64 _dstChainId, address _from, uint256 _to, uint _amount) internal onlyWithFee {
+        require(_amount > 0, MultichainTokenErrors.MULTICHAIN__ZERO_AMOUNT__ERROR);
+        tvm.rawReserve(MultichainTokenEnvs.MULTICHAIN__MIN_CONTRACT_BALANCE, 0);
         tokenBalance += _amount;
         uint transferHash = _initAsterizmTransferEvent(_dstChainId, abi.encode(_to, _amount, _getTxId()));
         if (_getIsRefundLogicAvailable()) {
             _addRefundTransfer(transferHash, _from, _amount, baseTokenWallet);
+        }
+        if (initTransferFee > 0) {
+            owner().transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
         }
     }
 
@@ -41,7 +62,7 @@ contract MultichainToken is AsterizmClient {
     /// @param _dto ClAsterizmReceiveRequestDto  Method DTO
     function _asterizmReceive(ClAsterizmReceiveRequestDto _dto) internal override returns(uint16) {
         (uint dst, uint amount, ) = abi.decode(_dto.payload, (uint, uint, uint));
-        require(tokenBalance >= amount, AsterizmErrors.CLIENT__NOT_ENOUGH_TOKENS__ERROR);
+        require(tokenBalance >= amount, MultichainTokenErrors.MULTICHAIN__NOT_ENOUGH_TOKENS__ERROR);
         sendBaseToken(address(dst), amount, true);
 
         return 0;
@@ -81,7 +102,7 @@ contract MultichainToken is AsterizmClient {
         }
 
         TvmCell body = buildBaseTokenTransferBody(_to, _amount);
-        baseTokenWallet.transfer({value: 41500000, body: body});
+        baseTokenWallet.transfer({value: MultichainTokenEnvs.MULTICHAIN__SEND_BASE_TOKEN_VALUE, body: body});
     }
 
     fallback() external {
@@ -106,9 +127,11 @@ contract MultichainToken is AsterizmClient {
                     // call logic
                     crossChainTransfer(chainId, sender, target, tokenAmount);
                 } else {
+                    tvm.rawReserve(MultichainTokenEnvs.MULTICHAIN__MIN_CONTRACT_BALANCE, 0);
                     sendBaseToken(sender, tokenAmount, false);
                 }
             } else {
+                tvm.rawReserve(MultichainTokenEnvs.MULTICHAIN__MIN_CONTRACT_BALANCE, 0);
                 sendBaseToken(sender, tokenAmount, false);
             }
         }
@@ -119,7 +142,7 @@ contract MultichainToken is AsterizmClient {
     /// @param _amount uint  Coins amount
     /// @param _tokenAddress address  Token address
     function _refundTokens(address _targetAddress, uint _amount, address _tokenAddress) internal override {
-        require(_tokenAddress == baseTokenWallet, AsterizmErrors.CLIENT__WRONG_TOKEN__ERROR);
+        require(_tokenAddress == baseTokenWallet, MultichainTokenErrors.MULTICHAIN__WRONG_TOKEN__ERROR);
         sendBaseToken(_targetAddress, _amount, true);
     }
 }
