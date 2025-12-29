@@ -42,7 +42,7 @@ abstract contract AsterizmConfig is AsterizmOwnable, IConfig {
     }
 
     constructor() {
-        require(owner_.value != 0, AsterizmErrors.TRANSFER__WRONG_WALLET_OWNER__ERROR);
+        require(deployer_.value != 0, AsterizmErrors.TRANSFER__WRONG_WALLET_OWNER__ERROR);
     }
 
     /// Managing trusted relay

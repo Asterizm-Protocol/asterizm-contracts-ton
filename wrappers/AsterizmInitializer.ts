@@ -16,9 +16,9 @@ export const Opcodes = {
     updateLocalChainId: 0x14146708,
   };
 /*
-  {
-    "addBlockAddress": "0x271370ce",
-  "blockAddresses": "0x5065f3bf",
+{
+  "addBlockAddress": "0x25f20339",
+  "blockAddresses": "0x78af8d52",
   "constructor": "0x68b55f3f",
   "getChainsList": "0x4ae3b55b",
   "getClientTransferCode": "0x3fa6d995",
@@ -29,17 +29,19 @@ export const Opcodes = {
   "manageTrustedRelay": "0x150745d9",
   "onUpdateChainsListCallback": "0x0baff217",
   "onUpdateLocalChainIdCallback": "0x21bd2c09",
+  "owner_": "0x0c0c3cfd",
   "receivePayload": "0x572acc5c",
-  "removeBlockAddress": "0x0c20e9de",
+  "removeBlockAddress": "0x4605f97f",
   "removeTrustedRelay": "0x394003ea",
   "resendTransfer": "0x5e8b6b08",
+  "setOwner": "0x6b6cb306",
   "transferSendingResultNotification": "0x68718154",
   "updateChainsList": "0x383933f2",
   "updateLocalChainId": "0x14146708",
-  "updateTrustedRelayFee": "0x56e7063a"
+  "updateTrustedRelayFee": "0x56e7063a",
+  "withdrawCoins": "0x14f9a0e4"
 }
-
-*/  
+*/
 
 export class AsterizmInitializer implements Contract {
     constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
@@ -56,7 +58,7 @@ export class AsterizmInitializer implements Contract {
             owner: Address,
         }, code: Cell, workchain = 0) {
         const strData = await createInitialData(asterizmInitializerAbi, {
-            owner_: callParam.owner.toRawString(),
+            deployer_: callParam.owner.toRawString(),
             translatorLib_: callParam.translator.toRawString(),
             initializerTransferCode_: callParam.initializerTransferCode,
             clientTransferCode_: callParam.clientTransferCode,

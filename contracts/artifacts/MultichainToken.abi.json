@@ -316,6 +316,22 @@
 			]
 		},
 		{
+			"name": "setOwner",
+			"inputs": [
+				{"name":"_owner","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "owner_",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"owner_","type":"address"}
+			]
+		},
+		{
 			"name": "refundFee",
 			"inputs": [
 			],
@@ -349,7 +365,7 @@
 		}
 	],
 	"data": [
-		{"key":1,"name":"owner_","type":"address"},
+		{"key":1,"name":"deployer_","type":"address"},
 		{"key":2,"name":"refundTransferCode_","type":"cell"},
 		{"key":3,"name":"refundRequestCode_","type":"cell"},
 		{"key":4,"name":"refundConfirmationCode_","type":"cell"},
@@ -607,6 +623,7 @@
 		{"name":"_pubkey","type":"uint256"},
 		{"name":"_timestamp","type":"uint64"},
 		{"name":"_constructorFlag","type":"bool"},
+		{"name":"deployer_","type":"address"},
 		{"name":"owner_","type":"address"},
 		{"components":[{"name":"exists","type":"bool"}],"name":"senders","type":"map(address,tuple)"},
 		{"name":"refundTransferCode_","type":"cell"},

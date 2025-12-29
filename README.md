@@ -33,4 +33,4 @@ Check [DOCS.md](./DOCS.md) or visit [Asterizm Docs](https://docs.asterizm.io/)
 
 ### Get contract function opcodes
 
-`./sold --function-ids {path-to-contract}`
+`./contracts/sold --function-ids {path-to-contract}`

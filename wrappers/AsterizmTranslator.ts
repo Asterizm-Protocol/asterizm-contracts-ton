@@ -13,7 +13,7 @@ export const Opcodes = {
     transferMessage: 0x24747daa,
   };
 /*
-  {
+{
   "addChain": "0x5c057031",
   "addChains": "0x7fc85c90",
   "addRelayer": "0x48fc0650",
@@ -22,17 +22,19 @@ export const Opcodes = {
   "getChainsList": "0x4ae3b55b",
   "getLocalChainId": "0x472e9bd4",
   "logExternalMessage": "0x578fe4d0",
+  "owner_": "0x0c0c3cfd",
   "removeChainById": "0x179d4345",
   "removeRelayer": "0x78a04a22",
   "resendMessage": "0x1e35959c",
   "sendMessage": "0x1f94b8c6",
   "setInitializer": "0x413d126c",
+  "setOwner": "0x6b6cb306",
   "transferMessage": "0x24747daa",
   "transferSendingResultNotification": "0x68718154",
-  "updateTrustedRelayFee": "0x56e7063a"
-
-  }
-*/  
+  "updateTrustedRelayFee": "0x56e7063a",
+  "withdrawCoins": "0x14f9a0e4"
+}
+*/
 
 export class AsterizmTranslator implements Contract {
     constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
@@ -43,7 +45,7 @@ export class AsterizmTranslator implements Contract {
 
      static async createFromConfig(owner: Address, localChainId: number, code: Cell, workchain = 0) {
         const dataStr = await createInitialData(asterizmTranslatorAbi, {
-            owner_ : owner.toRawString(),
+            deployer_ : owner.toRawString(),
             localChainId_ : localChainId || 40001,
             localChainType_ : ChainTypes.TVM,
             nonce_ : 1,

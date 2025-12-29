@@ -10,6 +10,18 @@ export const Opcodes = {
     isExecuted: 0x3841ec35,
 };
 
+/*
+{
+  "constructor": "0x68b55f3f",
+  "executeTransfer": "0x341a1248",
+  "initialize": "0x64b885d7",
+  "isExecuted": "0x3841ec35",
+  "isExists": "0x24d79b33",
+  "owner_": "0x0c0c3cfd",
+  "setOwner": "0x6b6cb306"
+}
+ */
+
 export class AsterizmClientTransfer implements Contract {
     constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
 

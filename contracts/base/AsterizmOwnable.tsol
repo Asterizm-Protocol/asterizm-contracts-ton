@@ -1,14 +1,23 @@
 pragma ton-solidity >= 0.70.0;
 
 import "./AsterizmErrors.tsol";
+import "./AsterizmEnvs.tsol";
+import "./AsterizmTransferFlags.tsol";
 
 abstract contract AsterizmOwnable {
 
-    address static owner_;
+    address static deployer_;
+    address public owner_;
 
-    /// Only translator modifier
+    /// Only owner modifier
     modifier onlyOwner() {
         require(msg.sender == owner_, AsterizmErrors.OWNER__ONLY_OWNER__ERROR);
+        _;
+    }
+
+    /// Only deployer modifier
+    modifier onlyDeployer() {
+        require(msg.sender == deployer_, AsterizmErrors.OWNER__ONLY_DEPLOYER__ERROR);
         _;
     }
 
@@ -16,5 +25,25 @@ abstract contract AsterizmOwnable {
     /// @return address
     function owner() internal view returns(address) {
         return owner_;
+    }
+
+    /// Return deployer
+    /// @return address
+    function deployer() internal view returns(address) {
+        return deployer_;
+    }
+
+    /// Set new owner address internal
+    /// @param _owner address  New owner address
+    function _setOwner(address _owner) internal {
+        owner_ = _owner;
+    }
+
+    /// Set new owner address
+    /// @param _owner address  New owner address
+    function setOwner(address _owner) public onlyOwner {
+        tvm.rawReserve(AsterizmEnvs.CLIENT__MIN_CONTRACT_BALANCE, 0);
+        _setOwner(_owner);
+        msg.sender.transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
     }
 }

@@ -66,13 +66,14 @@ contract AsterizmInitializer is AsterizmOwnable, IInitializerSender, IInitialize
     TvmCell static clientTransferCode_;
 
     constructor () {
-        require(owner_.value != 0, AsterizmErrors.TRANSFER__WRONG_WALLET_OWNER__ERROR);
+        require(deployer_.value != 0, AsterizmErrors.TRANSFER__WRONG_WALLET_OWNER__ERROR);
         tvm.accept();
 
+        _setOwner(deployer_);
         emit SetTranslatorEvent(address(translatorLib_));
 
         tvm.rawReserve(AsterizmEnvs.INITIALIZER__MIN_CONTRACT_BALANCE, 0);
-        owner_.transfer({
+        deployer_.transfer({
             value: 0,
             flag: AsterizmTransferFlags.ALL_NOT_RESERVED,
             bounce: false
@@ -127,7 +128,7 @@ contract AsterizmInitializer is AsterizmOwnable, IInitializerSender, IInitialize
         return tvm.buildStateInit({
             contr: AsterizmInitializerTransfer,
             varInit: {
-                owner_: address(this),
+                deployer_: address(this),
                 hash_: _transferHash
             },
             pubkey: 0,

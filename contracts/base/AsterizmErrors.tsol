@@ -5,6 +5,7 @@ library AsterizmErrors {
     // For Ownable contract
     uint16 constant OWNER__ONLY_OWNER__ERROR = 1001;
     uint16 constant OWNER__ZERO_ADDRESS__ERROR = 1002;
+    uint16 constant OWNER__ONLY_DEPLOYER__ERROR = 1003;
 
     // For Translator contract
     uint16 constant TRANSLATOR__ONLY_INITIALIZER__ERROR = 2001;

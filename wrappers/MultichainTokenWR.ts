@@ -33,6 +33,8 @@ export const Opcodes = {
     confirmRefund: 0x65fe9906,
     updateChainsList: 0x383933f2,
     setInitTransferFee: 0x659c7860,
+    withdrawCoins: 0x14f9a0e4,
+    setOwner: 0x6b6cb306,
 };
 /*
 {
@@ -51,16 +53,19 @@ export const Opcodes = {
   "getNotifyTransferSendingResult": "0x3b416f10",
   "getTrustedAddresses": "0x0c002e5f",
   "initAsterizmTransfer": "0x7d480ec3",
+  "initTransferFee": "0x4380893e",
   "initialize": "0x64b885d7",
   "onAddRefundRequestCallback": "0x0268cc5d",
   "onAsterizmReceiveCallback": "0x10d8da26",
   "onCheckRefundConfirmationCallback": "0x00700a29",
+  "onExecuteRequestCallback": "0x26ae9d72",
   "onInitAsterizmTransferCallback": "0x26df9f2c",
   "onProcessRefundRequestCallback": "0x58735613",
   "onUpdateChainsListCallback": "0x0baff217",
   "onUpdateClientTransferCodeCallback": "0x302d7c75",
   "onUpdateInitializerTransferCodeCallback": "0x3bffcd7a",
   "onUpdateLocalChainIdCallback": "0x21bd2c09",
+  "owner_": "0x0c0c3cfd",
   "processRefundRequest": "0x234f3688",
   "refundFee": "0x40a4608a",
   "removeSender": "0x553e6d25",
@@ -69,9 +74,11 @@ export const Opcodes = {
   "setBaseTokenWallet": "0x3fe7a5c6",
   "setExternalRelay": "0x5df6d154",
   "setInitTransferFee": "0x659c7860",
+  "setOwner": "0x6b6cb306",
   "tokenBalance": "0x7ed694f2",
   "transferSendingResultNotification": "0x532b776e",
-  "updateChainsList": "0x383933f2"
+  "updateChainsList": "0x383933f2",
+  "withdrawCoins": "0x14f9a0e4"
 }
 */
 
@@ -84,7 +91,7 @@ export class MultichainTokenWR implements Contract {
 
     static async createFromConfig(config: MultichainTokenContractConfig, code: Cell, workchain = 0) {
         const dataStr = await createInitialData(multichainTokenAbi, {
-            owner_ : config.owner.toRawString(),
+            deployer_ : config.owner.toRawString(),
             initializerLib_ : config.initializerLib.toRawString(),
             notifyTransferSendingResult_ : config.notifyTransferSendingResult,
             disableHashValidation_ : config.disableHashValidation,

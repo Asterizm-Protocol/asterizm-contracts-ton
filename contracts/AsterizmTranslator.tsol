@@ -79,15 +79,17 @@ contract AsterizmTranslator is AsterizmOwnable, ITranslator, AsterizmStructs, As
     uint static nonce_;
 
     constructor () {
-        require(owner_.value != 0, AsterizmErrors.TRANSFER__WRONG_WALLET_OWNER__ERROR);
+        require(deployer_.value != 0, AsterizmErrors.TRANSFER__WRONG_WALLET_OWNER__ERROR);
         tvm.accept();
 
+        _setOwner(deployer_);
         _fillChainTypes();
         addRelayerPrivate(owner());
         addChainPrivate(localChainId_, localChainType_);
         emit SetLocalChainEvent(localChainId_, localChainType_);
+
         tvm.rawReserve(AsterizmEnvs.TRANSLATOR__MIN_CONTRACT_BALANCE, 0);
-        owner_.transfer({
+        deployer_.transfer({
             value: 0,
             flag: AsterizmTransferFlags.ALL_NOT_RESERVED,
             bounce: false

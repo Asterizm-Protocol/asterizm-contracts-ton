@@ -114,7 +114,7 @@ abstract contract AsterizmRefund is AsterizmSender, AsterizmStructs {
         return tvm.buildStateInit({
             contr: AsterizmRefundTransfer,
             varInit: {
-                owner_: address(this),
+                deployer_: address(this),
                 hash_: _transferHash
             },
             pubkey: 0,
@@ -161,7 +161,7 @@ abstract contract AsterizmRefund is AsterizmSender, AsterizmStructs {
         return tvm.buildStateInit({
             contr: AsterizmRefundRequest,
             varInit: {
-                owner_: address(this),
+                deployer_: address(this),
                 hash_: _transferHash
             },
             pubkey: 0,
@@ -208,7 +208,7 @@ abstract contract AsterizmRefund is AsterizmSender, AsterizmStructs {
         return tvm.buildStateInit({
             contr: AsterizmRefundConfirmation,
             varInit: {
-                owner_: address(this),
+                deployer_: address(this),
                 hash_: _transferHash
             },
             pubkey: 0,

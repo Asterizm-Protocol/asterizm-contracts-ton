@@ -28,10 +28,26 @@
 				{"name":"value1","type":"bool"},
 				{"name":"value2","type":"uint8"}
 			]
+		},
+		{
+			"name": "setOwner",
+			"inputs": [
+				{"name":"_owner","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "owner_",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"owner_","type":"address"}
+			]
 		}
 	],
 	"data": [
-		{"key":1,"name":"owner_","type":"address"},
+		{"key":1,"name":"deployer_","type":"address"},
 		{"key":2,"name":"hash_","type":"uint256"}
 	],
 	"events": [
@@ -48,6 +64,7 @@
 		{"name":"_pubkey","type":"uint256"},
 		{"name":"_timestamp","type":"uint64"},
 		{"name":"_constructorFlag","type":"bool"},
+		{"name":"deployer_","type":"address"},
 		{"name":"owner_","type":"address"},
 		{"name":"hash_","type":"uint256"},
 		{"name":"isInitialized","type":"bool"}

@@ -117,7 +117,7 @@ export async function integrationDeploy(blockchain: Blockchain) {
     // update initializer local chain
     await initializer.sendUpdateLocalChainId(deployer.getSender(), toNano('2')); 
     const initializerCainId = await initializer.getLocalChainId();
-    expect(initializerCainId).toEqual('40001');  
+    expect(initializerCainId).toEqual('40001');
 
     // set initializer to translator
     await translator.sendSetInitializer(deployer.getSender(), toNano('2'), initializer.address);

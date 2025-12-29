@@ -129,16 +129,17 @@ abstract contract AsterizmClient is IClientReceiverContract, AsterizmRefund {
 
     // Call initialize() after deploy
     constructor() {
-        require(owner_.value != 0, AsterizmErrors.TRANSFER__WRONG_WALLET_OWNER__ERROR);
+        require(deployer_.value != 0, AsterizmErrors.TRANSFER__WRONG_WALLET_OWNER__ERROR);
         tvm.accept();
 
+        _setOwner(deployer_);
+        _addSenderPrivate(owner());
         emit SetInitializerEvent(address(initializerLib_));
         emit SetNotifyTransferSendingResultEvent(notifyTransferSendingResult_);
         emit SetDisableHashValidationEvent(disableHashValidation_);
-        _addSenderPrivate(owner());
 
         tvm.rawReserve(AsterizmEnvs.CLIENT__MIN_CONTRACT_BALANCE, 0);
-        owner_.transfer({
+        deployer_.transfer({
             value: 0,
             flag: AsterizmTransferFlags.ALL_NOT_RESERVED,
             bounce: false
@@ -188,8 +189,8 @@ abstract contract AsterizmClient is IClientReceiverContract, AsterizmRefund {
         }
     }
 
-    // Initialize contract after deploy
-    function initialize() public view onlyOwner {
+    /// Initialize contract after deploy
+    function initialize() public view onlyDeployer {
         initializerLib_.getLocalChainId{
             value: AsterizmEnvs.CLIENT__GETTER_VALUE,
             callback: onUpdateLocalChainIdCallback
@@ -308,7 +309,7 @@ abstract contract AsterizmClient is IClientReceiverContract, AsterizmRefund {
             tvm.buildStateInit({
                 contr: AsterizmInitializerTransfer,
                 varInit: {
-                    owner_: address(initializerLib_),
+                    deployer_: address(initializerLib_),
                     hash_: _transferHash
                 },
                 pubkey: 0,
@@ -332,7 +333,7 @@ abstract contract AsterizmClient is IClientReceiverContract, AsterizmRefund {
         return tvm.buildStateInit({
             contr: AsterizmClientTransfer,
             varInit: {
-                owner_: address(this),
+                deployer_: address(this),
                 hash_: _transferHash,
                 type_: _transferType
             },

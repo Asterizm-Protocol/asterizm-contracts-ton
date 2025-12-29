@@ -34,13 +34,14 @@ contract AsterizmRefundRequest is IRefundRequest, AsterizmOwnable {
 
     constructor() {
         require(tvm.pubkey() == 0, AsterizmErrors.REFUND__NON_ZERO_PUBLIC_KEY__ERROR);
-        require(owner_.value != 0, AsterizmErrors.REFUND__WRONG_WALLET_OWNER__ERROR);
-        require(owner_ == msg.sender, AsterizmErrors.REFUND__WRONG_OWNER__ERROR);
+        require(deployer_.value != 0, AsterizmErrors.REFUND__WRONG_WALLET_OWNER__ERROR);
+        require(deployer_ == msg.sender, AsterizmErrors.REFUND__WRONG_OWNER__ERROR);
 
+        _setOwner(deployer_);
         emit DeployRefundRequestContractEvent(address(this));
 
         tvm.rawReserve(AsterizmEnvs.REFUND__MIN_CONTRACT_BALANCE, 0);
-        owner().transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
+        deployer_.transfer({ value: 0, flag: AsterizmTransferFlags.ALL_NOT_RESERVED, bounce: false });
     }
 
     /// Set transfer request data
